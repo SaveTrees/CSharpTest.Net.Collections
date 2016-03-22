@@ -82,7 +82,7 @@ namespace CSharpTest.Net.Collections
 
                     bool isValueNode = me.IsLeaf;
                     int ordinal;
-                    if (me.BinarySearch(_itemComparer, new Element(key), out ordinal) && isValueNode)
+                    if (me.ExistsUsingBinarySearch(_itemComparer, new Element(key), out ordinal) && isValueNode)
                     {
                         pin = myPin;
                         myPin = null;

@@ -33,7 +33,7 @@ namespace CSharpTest.Net.Collections
 
             public override bool IsRoot { get { return true; } }
 
-            public override bool BinarySearch(IComparer<Element> comparer, Element find, out int ordinal)
+            public override bool ExistsUsingBinarySearch(IComparer<Element> comparer, Element find, out int ordinal)
             { ordinal = 0; return true; }
 
             public override Node CloneForWrite(LockType ltype)
@@ -128,7 +128,7 @@ namespace CSharpTest.Net.Collections
             [System.Diagnostics.DebuggerNonUserCode]
             public virtual bool IsRoot { get { return false; } }
 
-            public virtual bool BinarySearch(IComparer<Element> comparer, Element find, out int ordinal)
+            public virtual bool ExistsUsingBinarySearch(IComparer<Element> comparer, Element find, out int ordinal)
             {
                 int start = _count == 0 || _list[0].IsValue ? 0 : 1;
                 ordinal = Array.BinarySearch(_list, start, _count - start, find, comparer);

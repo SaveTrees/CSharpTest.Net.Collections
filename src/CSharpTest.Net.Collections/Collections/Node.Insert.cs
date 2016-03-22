@@ -161,7 +161,7 @@ namespace CSharpTest.Net.Collections
                 parent.Dispose();//done with the parent lock.
 
             int ordinal;
-            if (me.BinarySearch(_itemComparer, new Element(key), out ordinal) && me.IsLeaf)
+            if (me.ExistsUsingBinarySearch(_itemComparer, new Element(key), out ordinal) && me.IsLeaf)
             {
                 TValue updatedValue = me[ordinal].Payload;
                 if (value.UpdateValue(key, ref updatedValue))

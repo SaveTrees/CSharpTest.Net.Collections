@@ -181,7 +181,7 @@ namespace CSharpTest.Net.Collections
                     while (me.Count < me.Size && !value.IsComplete && range.IsKeyInRange(value.Current.Key))
                     {
                         int ordinal;
-                        bool exists = me.BinarySearch(_itemComparer, new Element(value.Current.Key), out ordinal);
+                        bool exists = me.ExistsUsingBinarySearch(_itemComparer, new Element(value.Current.Key), out ordinal);
                         DuplicateKeyException.Assert(!exists || value.AllowUpdate);
 
                         if (exists)
@@ -211,7 +211,7 @@ namespace CSharpTest.Net.Collections
             else
             {
                 int ordinal;
-                me.BinarySearch(_itemComparer, new Element(value.Current.Key), out ordinal);
+                me.ExistsUsingBinarySearch(_itemComparer, new Element(value.Current.Key), out ordinal);
 
                 if (ordinal >= me.Count)
                     ordinal = me.Count - 1;
