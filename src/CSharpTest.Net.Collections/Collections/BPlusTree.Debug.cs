@@ -181,7 +181,7 @@ namespace CSharpTest.Net.Collections
                     int ordinal;
                     if (me.IsLeaf || i > 0)
                     {
-                        parent.Ptr.BinarySearch(_itemComparer, me[i], out ordinal);
+                        parent.Ptr.ExistsUsingBinarySearch(_itemComparer, me[i], out ordinal);
                         Assert(ordinal == parentIx, "My child is not within parent range.");
                     }
                     else Assert(_keyComparer.Compare(me[i].Key, default(TKey)) == 0, "First key non-empty?");

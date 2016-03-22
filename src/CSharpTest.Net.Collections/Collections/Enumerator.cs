@@ -203,7 +203,7 @@ namespace CSharpTest.Net.Collections
                     while (true)
                     {
                         Node me = current.Ptr;
-                        me.BinarySearch(_tree._itemComparer, find, out ordinal);
+                        me.ExistsUsingBinarySearch(_tree._itemComparer, find, out ordinal);
                         if (me.IsLeaf)
                         {
                             pin = current;
