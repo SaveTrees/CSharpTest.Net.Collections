@@ -54,17 +54,17 @@ namespace CSharpTest.Net.Collections
             {
                 _handleSerializer.WriteTo(value.StorageHandle, stream);
 
-                bool isLeaf = value.IsLeaf;
-                int maximumKeys = value.IsRoot ? 1 : (isLeaf ? _options.MaximumValueNodes : _options.MaximumChildNodes);
+                var isLeaf = value.IsLeaf;
+                var maximumKeys = value.IsRoot ? 1 : (isLeaf ? _options.MaximumValueNodes : _options.MaximumChildNodes);
                 Assert(value.Size == maximumKeys);
 
                 _boolSerializer.WriteTo(isLeaf, stream);
                 _boolSerializer.WriteTo(value.IsRoot, stream);
                 _intSerializer.WriteTo(value.Count, stream);
 
-                for (int i = 0; i < value.Count; i++)
+                for (var i = 0; i < value.Count; i++)
                 {
-                    Element item = value[i];
+                    var item = value[i];
 
                     if (i > 0 || isLeaf)
                     {
@@ -84,16 +84,16 @@ namespace CSharpTest.Net.Collections
             public IEnumerable<KeyValuePair<TKey, TValue>> RecoverLeaf(Stream stream)
             {
                 _storageHandleSerializer.ReadFrom(stream);
-                bool isLeaf = _boolSerializer.ReadFrom(stream);
+                var isLeaf = _boolSerializer.ReadFrom(stream);
                 if (isLeaf)
                 {
                     /* isRoot */_boolSerializer.ReadFrom(stream);
-                    int count = _intSerializer.ReadFrom(stream);
+                    var count = _intSerializer.ReadFrom(stream);
 
-                    for (int i = 0; i < count; i++)
+                    for (var i = 0; i < count; i++)
                     {
-                        TKey key = _keySerializer.ReadFrom(stream);
-                        TValue value = _valueSerializer.ReadFrom(stream);
+                        var key = _keySerializer.ReadFrom(stream);
+                        var value = _valueSerializer.ReadFrom(stream);
                         yield return new KeyValuePair<TKey, TValue>(key, value);
                     }
                 }
@@ -101,17 +101,17 @@ namespace CSharpTest.Net.Collections
 
             Node ISerializer<Node>.ReadFrom(Stream stream)
             {
-                IStorageHandle handle = _storageHandleSerializer.ReadFrom(stream);
+                var handle = _storageHandleSerializer.ReadFrom(stream);
 
-                bool isLeaf = _boolSerializer.ReadFrom(stream);
-                bool isRoot = _boolSerializer.ReadFrom(stream);
-                int count = _intSerializer.ReadFrom(stream);
+                var isLeaf = _boolSerializer.ReadFrom(stream);
+                var isRoot = _boolSerializer.ReadFrom(stream);
+                var count = _intSerializer.ReadFrom(stream);
 
-                Element[] items = new Element[count];
+                var items = new Element[count];
 
-                for (int i = 0; i < count; i++)
+                for (var i = 0; i < count; i++)
                 {
-                    TKey key = default(TKey);
+                    var key = default(TKey);
 
                     if (i > 0 || isLeaf)
                         key = _keySerializer.ReadFrom(stream);
@@ -121,9 +121,9 @@ namespace CSharpTest.Net.Collections
                         items[i] = new Element(key, _handleSerializer.ReadFrom(stream));
                 }
 
-                int nodeSize = isLeaf ? _options.MaximumValueNodes : _options.MaximumChildNodes;
+                var nodeSize = isLeaf ? _options.MaximumValueNodes : _options.MaximumChildNodes;
                 Assert(nodeSize >= count);
-                Node resurrected = Node.FromElements(handle, isRoot, nodeSize, items);
+                var resurrected = Node.FromElements(handle, isRoot, nodeSize, items);
                 return resurrected;
             }
         }

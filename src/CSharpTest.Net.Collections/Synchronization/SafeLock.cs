@@ -52,7 +52,7 @@ namespace CSharpTest.Net.Synchronization
         {
             if (_sync != null)
             {
-                object monitor = _sync;
+                var monitor = _sync;
                 _sync = null;
                 Monitor.Exit(monitor);
             }
@@ -91,7 +91,7 @@ namespace CSharpTest.Net.Synchronization
         {
             if (_sync != null)
             {
-                object monitor = _sync;
+                var monitor = _sync;
                 _sync = null;
                 Monitor.Exit(monitor);
             }

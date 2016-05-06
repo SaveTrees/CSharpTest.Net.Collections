@@ -64,7 +64,7 @@ namespace CSharpTest.Net.Storage
         /// </summary>
         public static BTreeFileStore CreateNew(string filepath, int blockSize, int growthRate, int concurrentWriters, FileOptions options)
         {
-            using (FragmentedFile file = FragmentedFile.CreateNew(filepath, blockSize))
+            using (var file = FragmentedFile.CreateNew(filepath, blockSize))
                 CreateRoot(file);
 
             return new BTreeFileStore(filepath, blockSize, growthRate, concurrentWriters, options, false);
@@ -86,7 +86,7 @@ namespace CSharpTest.Net.Storage
 
         public IStorageHandle OpenRoot(out bool isNew)
         {
-            using (Stream s = _file.Open(_rootId.Id, FileAccess.Read))
+            using (var s = _file.Open(_rootId.Id, FileAccess.Read))
                 isNew = s.ReadByte() == -1;
             return _rootId;
         }
@@ -94,8 +94,8 @@ namespace CSharpTest.Net.Storage
         public bool TryGetNode<TNode>(IStorageHandle handleIn, out TNode node, ISerializer<TNode> serializer)
         {
             Check.Assert<InvalidNodeHandleException>(handleIn is FileId);
-            FileId handle = (FileId)handleIn;
-            using (Stream s = _file.Open(handle.Id, FileAccess.Read))
+            var handle = (FileId)handleIn;
+            using (var s = _file.Open(handle.Id, FileAccess.Read))
             {
                 node = serializer.ReadFrom(s);
                 return true;
@@ -104,22 +104,22 @@ namespace CSharpTest.Net.Storage
 
         public IStorageHandle Create()
         {
-            FileId hnew = new FileId(_file.Create());
+            var hnew = new FileId(_file.Create());
             return hnew;
         }
 
         public void Destroy(IStorageHandle handleIn)
         {
             Check.Assert<InvalidNodeHandleException>(handleIn is FileId);
-            FileId handle = (FileId)handleIn;
+            var handle = (FileId)handleIn;
             _file.Delete(handle.Id);
         }
 
         public void Update<T>(IStorageHandle handleIn, ISerializer<T> serializer, T node)
         {
             Check.Assert<InvalidNodeHandleException>(handleIn is FileId);
-            FileId handle = (FileId)handleIn;
-            using (Stream s = _file.Open(handle.Id, FileAccess.Write))
+            var handle = (FileId)handleIn;
+            using (var s = _file.Open(handle.Id, FileAccess.Write))
             {
                 try { } finally { serializer.WriteTo(node, s); }
             }
@@ -141,8 +141,8 @@ namespace CSharpTest.Net.Storage
             {
                 Id = id;
 
-                byte[] unique = Guid.NewGuid().ToByteArray();
-                for (int i = 0; i < 8; i++) unique[i] ^= unique[i + 8];
+                var unique = Guid.NewGuid().ToByteArray();
+                for (var i = 0; i < 8; i++) unique[i] ^= unique[i + 8];
                 Unique = BitConverter.ToInt64(unique, 0);
             }
 
@@ -174,7 +174,7 @@ namespace CSharpTest.Net.Storage
             void ISerializer<IStorageHandle>.WriteTo(IStorageHandle handleIn, Stream stream)
             {
                 Check.Assert<InvalidNodeHandleException>(handleIn is FileId);
-                FileId handle = (FileId)handleIn;
+                var handle = (FileId)handleIn;
                 PrimitiveSerializer.Int64.WriteTo(handle.Id, stream);
                 PrimitiveSerializer.Int64.WriteTo(handle.Unique, stream);
             }

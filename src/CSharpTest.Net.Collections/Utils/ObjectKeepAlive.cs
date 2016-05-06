@@ -112,7 +112,7 @@ namespace CSharpTest.Net.Utils
             if (_maxItems == 0)
                 return;
 
-            long dtNow = DateTime.UtcNow.Ticks;
+            var dtNow = DateTime.UtcNow.Ticks;
             if(!_externalTicks)
                 Tick(dtNow);
             
@@ -124,12 +124,12 @@ namespace CSharpTest.Net.Utils
                 myPos = Interlocked.Increment(ref _position);
             } while (myPos < current.Start);
 
-            int myOffset = (int)(myPos - current.Start);
+            var myOffset = (int)(myPos - current.Start);
             while (myOffset >= BucketSize)
             {
                 if (current.Next == null)
                 {
-                    Entry next = new Entry(current.Start + BucketSize);
+                    var next = new Entry(current.Start + BucketSize);
                     Interlocked.CompareExchange(ref current.Next, next, null);
                 }
 
@@ -141,10 +141,10 @@ namespace CSharpTest.Net.Utils
             current.Age = dtNow;
             current.Items[myOffset] = item;
 
-            long lastPos = current.Last;
+            var lastPos = current.Last;
             while (lastPos <= myPos)
             {
-                long test = Interlocked.CompareExchange(ref current.Last, myPos + 1, lastPos);
+                var test = Interlocked.CompareExchange(ref current.Last, myPos + 1, lastPos);
                 if (lastPos == test)
                     break;
                 lastPos = test;
@@ -153,13 +153,13 @@ namespace CSharpTest.Net.Utils
 
         private void Tick(long dtNow)
         {
-            long expireBefore = dtNow - _maxAge;
+            var expireBefore = dtNow - _maxAge;
 
         killAnother:
-            Entry item = _head;
-            bool killEntry = false;
+            var item = _head;
+            var killEntry = false;
 
-            long itemsFollowing = _position - item.Last;//how many items are we holding after this Entry
+            var itemsFollowing = _position - item.Last;//how many items are we holding after this Entry
 
             killEntry |= itemsFollowing > _maxItems;//exceeding our maxItems limit?
             killEntry |= itemsFollowing > _minItems && item.Age < expireBefore;//timeout of all items?
@@ -168,13 +168,13 @@ namespace CSharpTest.Net.Utils
             if (killEntry)
             {
                 if (ReferenceEquals(item, Interlocked.CompareExchange(ref _head, item.Next, item)))
-                    if((itemsFollowing - BucketSize) > _maxItems)
+                    if(itemsFollowing - BucketSize > _maxItems)
                         goto killAnother;
                 return;
             }
 
-            int offset = item.OffsetClear;
-            long entryCount = item.Last - item.Start - offset;
+            var offset = item.OffsetClear;
+            var entryCount = item.Last - item.Start - offset;
             while (entryCount > 0 && offset < BucketSize && (entryCount > _maxItems || (item.Age < expireBefore && entryCount > _minItems)))
             {
                 if (offset != Interlocked.CompareExchange(ref item.OffsetClear, offset + 1, offset))

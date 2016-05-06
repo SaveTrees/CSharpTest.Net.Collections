@@ -29,7 +29,7 @@ namespace CSharpTest.Net.IO
         public static byte[] ReadAllBytes(Stream io)
         {
             using (io)
-            using (MemoryStream ms = new MemoryStream())
+            using (var ms = new MemoryStream())
             {
                 CopyStream(io, ms);
                 return ms.ToArray();
@@ -47,7 +47,7 @@ namespace CSharpTest.Net.IO
         /// <summary> Reads a the number of bytes specified or throws IOException </summary>
         public static byte[] Read(Stream io, int nBytes) 
         { 
-            byte[] bytes = new byte[nBytes]; 
+            var bytes = new byte[nBytes]; 
             Read(io, bytes, nBytes); 
             return bytes;
         }
@@ -65,8 +65,8 @@ namespace CSharpTest.Net.IO
         /// <summary> Attempts to read the number of bytes specified and returns the actual count </summary>
         public static int ReadChunk(Stream io, byte[] bytes, int offset, int length)
         {
-            int bytesRead = 0;
-            int len = 0;
+            var bytesRead = 0;
+            var len = 0;
             while (length > bytesRead && 0 != (len = io.Read(bytes, bytesRead, length - bytesRead)))
                 bytesRead += len;
             return bytesRead;
@@ -83,9 +83,9 @@ namespace CSharpTest.Net.IO
         /// <returns> The number of bytes copied </returns>
         public static long CopyStream(Stream input, Stream output, long stopAfter)
         {
-            byte[] bytes = new byte[ushort.MaxValue];
+            var bytes = new byte[ushort.MaxValue];
             long bytesRead = 0;
-            int len = 0;
+            var len = 0;
             while (0 != (len = input.Read(bytes, 0, Math.Min(bytes.Length, (int)Math.Min(int.MaxValue, stopAfter - bytesRead)))))
             {
                 output.Write(bytes, 0, len);

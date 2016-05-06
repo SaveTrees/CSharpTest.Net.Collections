@@ -28,7 +28,7 @@ namespace CSharpTest.Net.Collections
         /// <summary> Sorts the contents of the array using a stable merge-sort with O(n) additional memory </summary>
         public static void Sort<T>(T[] list)
         {
-            T[] clone = (T[])list.Clone();
+            var clone = (T[])list.Clone();
             Sort(clone, list, 0, list.Length, Comparer<T>.Default);
         }
         /// <summary> Sorts the contents of the array using a stable merge-sort with O(n) additional memory </summary>
@@ -41,25 +41,25 @@ namespace CSharpTest.Net.Collections
         /// <summary> Sorts the contents of the array using a stable merge-sort with O(n) additional memory </summary>
         public static void Sort<T>(T[] list, IComparer<T> compare)
         {
-            T[] clone = (T[])list.Clone();
+            var clone = (T[])list.Clone();
             Sort(clone, list, 0, list.Length, compare);
         }
         /// <summary> Sorts the contents of the array using a stable merge-sort with O(n) additional memory </summary>
         public static void Sort<T>(T[] list, int offset, int count, IComparer<T> compare)
         {
-            T[] clone = (T[])list.Clone();
+            var clone = (T[])list.Clone();
             Sort(clone, list, offset, count, compare);
         }
         /// <summary> Sorts the contents of the array using a stable merge-sort with O(n) additional memory </summary>
         public static void Sort<T>(T[] list, Comparison<T> compare)
         {
-            T[] clone = (T[])list.Clone();
+            var clone = (T[])list.Clone();
             Sort(clone, list, 0, list.Length, new ByComparison<T>(compare));
         }
         /// <summary> Sorts the contents of the array using a stable merge-sort with O(n) additional memory </summary>
         public static void Sort<T>(T[] list, int offset, int count, Comparison<T> compare)
         {
-            T[] clone = (T[])list.Clone();
+            var clone = (T[])list.Clone();
             Sort(clone, list, offset, count, new ByComparison<T>(compare));
         }
 
@@ -82,7 +82,7 @@ namespace CSharpTest.Net.Collections
         {
             if (count > 2)
             {
-                int half = count >> 1;
+                var half = count >> 1;
                 int c1 = half, c2 = count - half;
                 Sort(dest, src, offset, c1, compare);
                 Sort(dest, src, offset + half, c2, compare);
@@ -92,7 +92,7 @@ namespace CSharpTest.Net.Collections
                 for (int rix = offset, stop = offset + count, ix1 = offset, ix2 = offset + half; rix < stop; rix++)
                 {
                     dest[rix] =
-                        (ix1 < c1 && (ix2 == c2 || compare.Compare(src[ix1], src[ix2]) <= 0))
+                        ix1 < c1 && (ix2 == c2 || compare.Compare(src[ix1], src[ix2]) <= 0)
                         ? src[ix1++]
                         : src[ix2++];
                 }

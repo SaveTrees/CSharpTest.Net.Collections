@@ -69,7 +69,7 @@ namespace CSharpTest.Net.Serialization
             const uint mask = 0x7f;
             int last;
             uint value = 0;
-            int shift = 0;
+            var shift = 0;
             do
             {
                 last = stream.ReadByte();
@@ -117,7 +117,7 @@ namespace CSharpTest.Net.Serialization
             const ulong mask = 0x7f;
             int last;
             ulong value = 0;
-            int shift = 0;
+            var shift = 0;
             do
             {
                 last = stream.ReadByte();

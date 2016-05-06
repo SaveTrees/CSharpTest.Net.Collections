@@ -35,7 +35,7 @@ namespace CSharpTest.Net.Collections
 		static OrdinalList()
 		{
 			BitCount = new byte[byte.MaxValue + 1];
-			for (int i = 0; i <= byte.MaxValue; i++)
+			for (var i = 0; i <= byte.MaxValue; i++)
 			{
 				if ((i & 0x0001) != 0) BitCount[i]++;
 				if ((i & 0x0002) != 0) BitCount[i]++;
@@ -82,8 +82,8 @@ namespace CSharpTest.Net.Collections
 		{
 			get
 			{
-				int count = 0;
-				foreach (byte b in _bits)
+				var count = 0;
+				foreach (var b in _bits)
 					count += BitCount[b];
 				return count;
 			}
@@ -95,7 +95,7 @@ namespace CSharpTest.Net.Collections
 		/// </summary>
 		public int Ceiling
 		{
-			get { return (int)((((long)_bits.Length) << 3) - 1); }
+			get { return (int)(((long)_bits.Length << 3) - 1); }
 			set { AllocFor(value); }
 		}
 
@@ -115,9 +115,9 @@ namespace CSharpTest.Net.Collections
 		/// <summary> Adds a range of integer ordinals into the collection </summary>
 		public void AddRange(IEnumerable<int> contents)
 		{
-			int max = int.MinValue;
+			var max = int.MinValue;
 
-			foreach (int i in contents)
+			foreach (var i in contents)
 				max = Math.Max(i, max);
 
 			if (max == int.MinValue)
@@ -126,10 +126,10 @@ namespace CSharpTest.Net.Collections
 			//pre-alloc/adjust array
 			AllocFor(max);
 
-			foreach (int item in contents)
+			foreach (var item in contents)
 			{
-				int offset = item >> 3;
-				int bit = 1 << (item & 0x07);
+				var offset = item >> 3;
+				var bit = 1 << (item & 0x07);
 				_bits[offset] |= unchecked((byte)bit);
 			}
 		}
@@ -138,16 +138,16 @@ namespace CSharpTest.Net.Collections
 		public void Add(int item)
 		{
 			AllocFor(item);
-			int offset = item >> 3;
-			int bit = 1 << (item & 0x07);
+			var offset = item >> 3;
+			var bit = 1 << (item & 0x07);
 			_bits[offset] |= unchecked((byte)bit);
 		}
 
 		/// <summary> Removes an ordinal from the collection </summary>
 		public bool Remove(int item)
 		{
-			int offset = item >> 3;
-			int bit = 1 << (item & 0x07);
+			var offset = item >> 3;
+			var bit = 1 << (item & 0x07);
             if (offset < _bits.Length)
             {
                 if (0 != (_bits[offset] & unchecked((byte)bit)))
@@ -162,8 +162,8 @@ namespace CSharpTest.Net.Collections
 		/// <summary> Returns true if the ordinal is in the collection </summary>
 		public bool Contains(int item)
 		{
-			int offset = item >> 3;
-			int bit = 1 << (item & 0x07);
+			var offset = item >> 3;
+			var bit = 1 << (item & 0x07);
 			if (offset < _bits.Length && (_bits[offset] & bit) == bit)
 				return true;
 			return false;
@@ -172,7 +172,7 @@ namespace CSharpTest.Net.Collections
 		/// <summary> Extracts the ordinals into an array </summary>
 		public void CopyTo(int[] array, int arrayIndex)
 		{
-			foreach(int ordinal in this)
+			foreach(var ordinal in this)
 				array[arrayIndex++] = ordinal;
 		}
 
@@ -194,18 +194,18 @@ namespace CSharpTest.Net.Collections
         {
             unchecked
             {
-                byte[] copy = new byte[_bits.Length];
-                for (int i = 0; i < _bits.Length; i++)
+                var copy = new byte[_bits.Length];
+                for (var i = 0; i < _bits.Length; i++)
                     copy[i] = (byte)~_bits[i];
 
-                OrdinalList result = new OrdinalList();
+                var result = new OrdinalList();
                 result._bits = copy;
 
                 result.Ceiling = ceiling;
-                int limit = result.Ceiling;
-                for (int i = Ceiling; i < limit; i++)
+                var limit = result.Ceiling;
+                for (var i = Ceiling; i < limit; i++)
                     result.Add(i);
-                for (int i = ceiling + 1; i <= limit; i++)
+                for (var i = ceiling + 1; i <= limit; i++)
                     result.Remove(i);
 
                 return result;
@@ -220,11 +220,11 @@ namespace CSharpTest.Net.Collections
 			big = _bits.Length > other._bits.Length ? _bits : other._bits;
             small = _bits.Length > other._bits.Length ? other._bits : _bits;
 
-			byte[] newbits = (byte[])small.Clone();
-			for (int i = 0; i < small.Length; i++)
+			var newbits = (byte[])small.Clone();
+			for (var i = 0; i < small.Length; i++)
 				newbits[i] &= big[i];
 
-			OrdinalList result = new OrdinalList();
+			var result = new OrdinalList();
 			result._bits = newbits;
 			return result;
 		}
@@ -237,11 +237,11 @@ namespace CSharpTest.Net.Collections
 			big = _bits.Length > other._bits.Length ? _bits : other._bits;
             small = _bits.Length > other._bits.Length ? other._bits : _bits;
 
-			byte[] newbits = (byte[])big.Clone();
-			for (int i = 0; i < small.Length; i++)
+			var newbits = (byte[])big.Clone();
+			for (var i = 0; i < small.Length; i++)
 				newbits[i] |= small[i];
 
-			OrdinalList result = new OrdinalList();
+			var result = new OrdinalList();
 			result._bits = newbits;
 			return result;
 		}
@@ -279,9 +279,9 @@ namespace CSharpTest.Net.Collections
         /// <summary> Returns an enumeration of the ordinal values </summary>
         public IEnumerable<int> EnumerateRange(int startAt, int endAt)
         {
-            int ordinal = startAt & ~0x07;
+            var ordinal = startAt & ~0x07;
             //foreach (byte i in _bits)
-            for(int ix = startAt >> 3; ix < _bits.Length; ix++)
+            for(var ix = startAt >> 3; ix < _bits.Length; ix++)
             {
                 if (_bits[ix] != 0)
                 {
@@ -321,7 +321,7 @@ namespace CSharpTest.Net.Collections
         /// </summary>
 	    public OrdinalList Clone()
 	    {
-            OrdinalList copy = new OrdinalList();
+            var copy = new OrdinalList();
             copy._bits = (byte[])_bits.Clone();
             return copy;
 	    }

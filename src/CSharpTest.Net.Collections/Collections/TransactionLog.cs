@@ -154,7 +154,7 @@ namespace CSharpTest.Net.Collections
 
             public static IEnumerable<LogEntry> FromKeyValuePairs(IEnumerable<KeyValuePair<TKey, TValue>> e)
             {
-                foreach (KeyValuePair<TKey, TValue> kv in e)
+                foreach (var kv in e)
                     yield return new LogEntry
                     {
                         TransactionId = 0,
@@ -198,7 +198,7 @@ namespace CSharpTest.Net.Collections
             }
             public LogEntry ReadFrom(Stream stream)
             {
-                LogEntry entry = new LogEntry();
+                var entry = new LogEntry();
                 entry.TransactionId = PrimitiveSerializer.Int32.ReadFrom(stream);
                 entry.OpCode = (OperationCode)PrimitiveSerializer.Int16.ReadFrom(stream);
                 entry.Key = _keySerializer.ReadFrom(stream);
@@ -276,7 +276,7 @@ namespace CSharpTest.Net.Collections
         /// </summary>
         public void ReplayLog(IDictionary<TKey, TValue> target)
         {
-            long position = 0L;
+            var position = 0L;
             ReplayLog(target, ref position);
         }
         /// <summary>
@@ -284,10 +284,10 @@ namespace CSharpTest.Net.Collections
         /// </summary>
         public void ReplayLog(IDictionary<TKey, TValue> target, ref long position)
         {
-            long[] refposition = new long[] { position };
+            var refposition = new long[] { position };
             try
             {
-                foreach (LogEntry entry in EnumerateLog(refposition))
+                foreach (var entry in EnumerateLog(refposition))
                 {
                     if (entry.OpCode == OperationCode.Remove)
                         target.Remove(entry.Key);
@@ -306,20 +306,20 @@ namespace CSharpTest.Net.Collections
         /// </summary>
         public IEnumerable<KeyValuePair<TKey, TValue>> MergeLog(IComparer<TKey> keyComparer, IEnumerable<KeyValuePair<TKey, TValue>> existing)
         {
-            LogEntryComparer comparer = new LogEntryComparer(keyComparer);
+            var comparer = new LogEntryComparer(keyComparer);
             // Order the log entries by key
-            OrderedEnumeration<LogEntry> orderedLog = new OrderedEnumeration<LogEntry>(
+            var orderedLog = new OrderedEnumeration<LogEntry>(
                 comparer,
                 EnumerateLog(new long[1]),
                 new LogEntrySerializer(_options.KeySerializer, _options.ValueSerializer)
                 );
 
             // Merge the existing data with the ordered log, using last value
-            IEnumerable<LogEntry> all = OrderedEnumeration<LogEntry>.Merge(
+            var all = OrderedEnumeration<LogEntry>.Merge(
                 comparer, DuplicateHandling.LastValueWins, LogEntry.FromKeyValuePairs(existing), orderedLog);
 
             // Returns all key/value pairs that are not a remove operation
-            foreach (LogEntry le in all)
+            foreach (var le in all)
             {
                 if (le.OpCode != OperationCode.Remove)
                     yield return new KeyValuePair<TKey, TValue>(le.Key, le.Value);
@@ -342,15 +342,15 @@ namespace CSharpTest.Net.Collections
                     yield break;
                 }
 
-                using (MemoryStream buffer = new MemoryStream(8192))
+                using (var buffer = new MemoryStream(8192))
                 using (Stream io = new FileStream(_options.FileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, 0x10000, FileOptions.SequentialScan))
                 {
-                    bool valid = true;
+                    var valid = true;
                     const int minSize = 16;
-                    byte[] bytes = buffer.GetBuffer();
+                    var bytes = buffer.GetBuffer();
                     int size, temp, nbytes, szcontent;
                     short opCount;
-                    LogEntry entry = new LogEntry();
+                    var entry = new LogEntry();
 
                     length = io.Length;
                     if (position[0] < 0 || position[0] > length)
@@ -359,7 +359,7 @@ namespace CSharpTest.Net.Collections
                         yield break;
                     }
 
-                    bool fixedOffset = position[0] > 0;
+                    var fixedOffset = position[0] > 0;
                     io.Position = position[0];
 
                     while (valid && (pos = position[0] = io.Position) + minSize < length)
@@ -367,7 +367,7 @@ namespace CSharpTest.Net.Collections
                         try
                         {
                             size = PrimitiveSerializer.Int32.ReadFrom(io);
-                            size = ((byte)(size >> 24) == 0xbb) ? size & 0x00FFFFFF : -1;
+                            size = (byte)(size >> 24) == 0xbb ? size & 0x00FFFFFF : -1;
                             if (size < minSize || pos + size + 4 > length)
                             {
                                 if (fixedOffset)
@@ -378,7 +378,7 @@ namespace CSharpTest.Net.Collections
 
                             if (size > buffer.Capacity)
                             {
-                                buffer.Capacity = (size + 8192);
+                                buffer.Capacity = size + 8192;
                                 bytes = buffer.GetBuffer();
                             }
 
@@ -392,7 +392,7 @@ namespace CSharpTest.Net.Collections
 
                             if (nbytes != szcontent)
                                 break;
-                            Crc32 crc = new Crc32();
+                            var crc = new Crc32();
                             crc.Add(bytes, 0, nbytes);
                             temp = PrimitiveSerializer.Int32.ReadFrom(io);
                             if (crc.Value != temp)
@@ -426,7 +426,7 @@ namespace CSharpTest.Net.Collections
                             try
                             {
                                 entry.Key = _options.KeySerializer.ReadFrom(buffer);
-                                entry.Value = (entry.OpCode == OperationCode.Remove)
+                                entry.Value = entry.OpCode == OperationCode.Remove
                                     ? default(TValue)
                                     : _options.ValueSerializer.ReadFrom(buffer);
                             }
@@ -435,7 +435,7 @@ namespace CSharpTest.Net.Collections
                                 valid = false;
                                 break;
                             }
-                            if ((buffer.Position == buffer.Length) != (opCount == 0))
+                            if (buffer.Position == buffer.Length != (opCount == 0))
                             {
                                 valid = false;
                                 break;
@@ -506,7 +506,7 @@ namespace CSharpTest.Net.Collections
         private void Write(ref TransactionToken token, OperationCode operation, TKey key, TValue value)
         {
             AssertionFailedException.Assert(token.State == StateOpen);
-            MemoryStream buffer = token.Object as MemoryStream;
+            var buffer = token.Object as MemoryStream;
             if (buffer == null)
             {
                 token.Object = buffer = new MemoryStream();
@@ -521,10 +521,10 @@ namespace CSharpTest.Net.Collections
                 _options.ValueSerializer.WriteTo(value, buffer);
 
             //Increment the operation counter at offset 8
-            long pos = buffer.Position;
+            var pos = buffer.Position;
 
             buffer.Position = 8;
-            short count = PrimitiveSerializer.Int16.ReadFrom(buffer);
+            var count = PrimitiveSerializer.Int16.ReadFrom(buffer);
             
             buffer.Position = 8;
             PrimitiveSerializer.Int16.WriteTo(++count, buffer);
@@ -540,16 +540,16 @@ namespace CSharpTest.Net.Collections
             AssertionFailedException.Assert(token.State == StateOpen);
             token.State = StateCommitted;
 
-            MemoryStream buffer = token.Object as MemoryStream;
+            var buffer = token.Object as MemoryStream;
             if (buffer == null)
                 return; // nothing to commit
 
-            byte[] bytes = buffer.GetBuffer();
-            Crc32 crc = new Crc32();
+            var bytes = buffer.GetBuffer();
+            var crc = new Crc32();
             crc.Add(bytes, 4, (int)buffer.Position - 4);
             PrimitiveSerializer.Int32.WriteTo(crc.Value, buffer);
 
-            int len = (int)buffer.Position;
+            var len = (int)buffer.Position;
             PrimitiveSerializer.Int32.WriteTo((0xee << 24) + len, buffer);
             buffer.Position = 0;
             PrimitiveSerializer.Int32.WriteTo((0xbb << 24) + len, buffer);
@@ -583,7 +583,7 @@ namespace CSharpTest.Net.Collections
 
             AssertionFailedException.Assert(token.State == StateOpen);
             token.State = StateRolledback;
-            MemoryStream buffer = token.Object as MemoryStream;
+            var buffer = token.Object as MemoryStream;
             if (buffer != null)
                 buffer.Dispose();
             token.Object = null;

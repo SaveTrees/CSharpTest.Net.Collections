@@ -108,7 +108,7 @@ namespace CSharpTest.Net.Serialization
 
         bool ISerializer<bool>.ReadFrom(Stream stream)
         {
-            int result = stream.ReadByte();
+            var result = stream.ReadByte();
             Check.Assert<InvalidDataException>(result != -1);
             return result == 1;
         }
@@ -123,7 +123,7 @@ namespace CSharpTest.Net.Serialization
 
         byte ISerializer<byte>.ReadFrom(Stream stream)
         {
-            int result = stream.ReadByte();
+            var result = stream.ReadByte();
             Check.Assert<InvalidDataException>(result != -1);
             return unchecked((byte)result);
         }
@@ -138,7 +138,7 @@ namespace CSharpTest.Net.Serialization
 
         sbyte ISerializer<sbyte>.ReadFrom(Stream stream)
         {
-            int result = stream.ReadByte();
+            var result = stream.ReadByte();
             Check.Assert<InvalidDataException>(result != -1);
             return unchecked((sbyte)result);
         }
@@ -223,8 +223,8 @@ namespace CSharpTest.Net.Serialization
         {
             unchecked
             {
-                int b1 = stream.ReadByte();
-                int b2 = stream.ReadByte();
+                var b1 = stream.ReadByte();
+                var b2 = stream.ReadByte();
                 Check.Assert<InvalidDataException>(b2 != -1);
                 return (ushort)((b1 << 8) | b2);
             }
@@ -261,18 +261,16 @@ namespace CSharpTest.Net.Serialization
         {
             unchecked
             {
-                int b1 = stream.ReadByte();
-                int b2 = stream.ReadByte();
-                int b3 = stream.ReadByte();
-                int b4 = stream.ReadByte();
+                var b1 = stream.ReadByte();
+                var b2 = stream.ReadByte();
+                var b3 = stream.ReadByte();
+                var b4 = stream.ReadByte();
 
                 Check.Assert<InvalidDataException>(b4 != -1);
-                return (
-                    (((uint)b1) << 24) |
-                    (((uint)b2) << 16) |
-                    (((uint)b3) << 8) |
-                    (((uint)b4) << 0)
-                    );
+                return ((uint)b1 << 24) |
+					   ((uint)b2 << 16) |
+					   ((uint)b3 << 8) |
+					   ((uint)b4 << 0);
             }
         }
 
@@ -311,25 +309,23 @@ namespace CSharpTest.Net.Serialization
         {
             unchecked
             {
-                int b1 = stream.ReadByte();
-                int b2 = stream.ReadByte();
-                int b3 = stream.ReadByte();
-                int b4 = stream.ReadByte();
-                int b5 = stream.ReadByte();
-                int b6 = stream.ReadByte();
-                int b7 = stream.ReadByte();
-                int b8 = stream.ReadByte();
+                var b1 = stream.ReadByte();
+                var b2 = stream.ReadByte();
+                var b3 = stream.ReadByte();
+                var b4 = stream.ReadByte();
+                var b5 = stream.ReadByte();
+                var b6 = stream.ReadByte();
+                var b7 = stream.ReadByte();
+                var b8 = stream.ReadByte();
                 Check.Assert<InvalidDataException>(b8 != -1);
-                return (
-                    (((ulong)b1) << 56) |
-                    (((ulong)b2) << 48) |
-                    (((ulong)b3) << 40) |
-                    (((ulong)b4) << 32) |
-                    (((ulong)b5) << 24) |
-                    (((ulong)b6) << 16) |
-                    (((ulong)b7) << 8) |
-                    (((ulong)b8) << 0)
-                    );
+                return ((ulong)b1 << 56) |
+					   ((ulong)b2 << 48) |
+					   ((ulong)b3 << 40) |
+					   ((ulong)b4 << 32) |
+					   ((ulong)b5 << 24) |
+					   ((ulong)b6 << 16) |
+					   ((ulong)b7 << 8) |
+					   ((ulong)b8 << 0);
             }
         }
 
@@ -369,7 +365,7 @@ namespace CSharpTest.Net.Serialization
 
         Guid ISerializer<Guid>.ReadFrom(Stream stream)
         {
-            byte[] tmp = new byte[16];
+            var tmp = new byte[16];
 
             int len, bytesRead = 0;
             while (bytesRead < 16 && 0 != (len = stream.Read(tmp, bytesRead, 16 - bytesRead)))

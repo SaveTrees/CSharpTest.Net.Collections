@@ -26,9 +26,9 @@ namespace CSharpTest.Net.IO
             Table = new int[256];
             for (uint i = 0; i < 256; i++)
             {
-                uint crc = i;
+                var crc = i;
                 for (uint j = 0; j < 8; j++)
-                    crc = (crc >> 1) ^ (((crc & 1) == 1) ? 0xEDB88320u : 0);
+                    crc = (crc >> 1) ^ ((crc & 1) == 1 ? 0xEDB88320u : 0);
                 //Note: table ordinal and value inverted to omit -1 start and end operation
                 Table[~i & 0x0ff] = ~unchecked((int)crc);
             }
@@ -57,7 +57,7 @@ namespace CSharpTest.Net.IO
         /// <summary> Adds a byte to the checksum </summary>
         public void Add(byte b)
         {
-            _crc32 = (((~_crc32 >> 8) & 0x00FFFFFF) ^ Table[(_crc32 ^ b) & 0x0ff]);
+            _crc32 = ((~_crc32 >> 8) & 0x00FFFFFF) ^ Table[(_crc32 ^ b) & 0x0ff];
         }
 
         /// <summary> Adds a byte to the checksum </summary>
@@ -75,10 +75,10 @@ namespace CSharpTest.Net.IO
         public void Add(byte[] bytes, int start, int length)
         {
             Check.NotNull(bytes);
-            int end = start + length;
+            var end = start + length;
 
-            for (int i = start; i < end; i++)
-                _crc32 = (((~_crc32 >> 8) & 0x00FFFFFF) ^ Table[(_crc32 ^ bytes[i]) & 0x0ff]);
+            for (var i = start; i < end; i++)
+                _crc32 = ((~_crc32 >> 8) & 0x00FFFFFF) ^ Table[(_crc32 ^ bytes[i]) & 0x0ff];
             
         }
 
@@ -92,10 +92,10 @@ namespace CSharpTest.Net.IO
         /// <summary> Adds a string to the checksum as a series of 16-bit values (big endian) </summary>
         public void Add(string text)
         {
-            foreach (char ch in Check.NotNull(text))
+            foreach (var ch in Check.NotNull(text))
             {
-                _crc32 = (((~_crc32 >> 8) & 0x00FFFFFF) ^ Table[(_crc32 ^ ((byte)ch >> 8)) & 0x0ff]);
-                _crc32 = (((~_crc32 >> 8) & 0x00FFFFFF) ^ Table[(_crc32 ^ ((byte)ch)) & 0x0ff]);
+                _crc32 = ((~_crc32 >> 8) & 0x00FFFFFF) ^ Table[(_crc32 ^ ((byte)ch >> 8)) & 0x0ff];
+                _crc32 = ((~_crc32 >> 8) & 0x00FFFFFF) ^ Table[(_crc32 ^ (byte)ch) & 0x0ff];
             }
         }
 
@@ -114,7 +114,7 @@ namespace CSharpTest.Net.IO
         {
             return 
                 (obj is Crc32 && _crc32 == ((Crc32)obj)._crc32) ||
-                (obj is int && Value == ((int)obj));
+                (obj is int && Value == (int)obj);
         }
 
         /// <summary> Returns true if the other object is equal to this one </summary>

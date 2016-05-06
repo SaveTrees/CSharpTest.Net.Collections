@@ -75,13 +75,13 @@ namespace CSharpTest.Net.Collections
             { return Create(parent.LockType, isLeaf); }
             public NodePin Create(LockType ltype, bool isLeaf)
             {
-                IStorageHandle storeHandle = _cache.Storage.Create();
-                NodeHandle handle = new NodeHandle(storeHandle);
+                var storeHandle = _cache.Storage.Create();
+                var handle = new NodeHandle(storeHandle);
                 object refobj;
-                ILockStrategy lck = _cache.CreateLock(handle, out refobj);
+                var lck = _cache.CreateLock(handle, out refobj);
 
-                int size = isLeaf ? _cache.Options.MaximumValueNodes : _cache.Options.MaximumChildNodes;
-                NodePin pin = new NodePin(handle, lck, ltype, LockType.Insert, refobj, null, new Node(handle.StoreHandle, size));
+                var size = isLeaf ? _cache.Options.MaximumValueNodes : _cache.Options.MaximumChildNodes;
+                var pin = new NodePin(handle, lck, ltype, LockType.Insert, refobj, null, new Node(handle.StoreHandle, size));
                 NodePin.Append(ref _created, pin);
                 return pin;
             }
@@ -115,7 +115,7 @@ namespace CSharpTest.Net.Collections
 
                 try
                 {
-                    NodePin pin = _created;
+                    var pin = _created;
                     while (pin != null)
                     {
                         pin.Ptr.ToReadOnly();
@@ -151,7 +151,7 @@ namespace CSharpTest.Net.Collections
 
             private void FinalizeCommit()
             {
-                NodePin pin = _created;
+                var pin = _created;
                 while (pin != null)
                 {
                     pin.CommitChanges();
@@ -191,7 +191,7 @@ namespace CSharpTest.Net.Collections
                     _parentItem.Dispose();
                 }
 
-                NodePin pin = _created;
+                var pin = _created;
                 while (pin != null)
                 {
                     pin.CancelChanges();

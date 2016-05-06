@@ -122,22 +122,22 @@ namespace CSharpTest.Net.Collections
 
         private int AddRange(NodePin thisLock, ref KeyRange range, AddRangeInfo value, NodePin parent, int parentIx)
         {
-            int counter = 0;
-            Node me = thisLock.Ptr;
+            var counter = 0;
+            var me = thisLock.Ptr;
             if (me.Count == me.Size && parent != null)
             {
-                using (NodeTransaction trans = _storage.BeginTransaction())
+                using (var trans = _storage.BeginTransaction())
                 {
                     TKey splitAt;
                     if (parent.Ptr.IsRoot) //Is root node
                     {
-                        Node rootNode = trans.BeginUpdate(parent);
-                        using (NodePin newRoot = trans.Create(parent, false))
+                        var rootNode = trans.BeginUpdate(parent);
+                        using (var newRoot = trans.Create(parent, false))
                         {
                             rootNode.ReplaceChild(0, thisLock.Handle, newRoot.Handle);
                             newRoot.Ptr.Insert(0, new Element(default(TKey), thisLock.Handle));
 
-                            using (NodePin next = Split(trans, ref thisLock, newRoot, 0, out splitAt, true))
+                            using (var next = Split(trans, ref thisLock, newRoot, 0, out splitAt, true))
                             using (thisLock)
                             {
                                 trans.Commit();
@@ -150,7 +150,7 @@ namespace CSharpTest.Net.Collections
                     }
 
                     trans.BeginUpdate(parent);
-                    using (NodePin next = Split(trans, ref thisLock, parent, parentIx, out splitAt, true))
+                    using (var next = Split(trans, ref thisLock, parent, parentIx, out splitAt, true))
                     using (thisLock)
                     {
                         trans.Commit();
@@ -173,15 +173,15 @@ namespace CSharpTest.Net.Collections
 
             if (me.IsLeaf)
             {
-                using (NodeTransaction trans = _storage.BeginTransaction())
+                using (var trans = _storage.BeginTransaction())
                 {
                     me = trans.BeginUpdate(thisLock);
-                    int inserted = 0;
+                    var inserted = 0;
 
                     while (me.Count < me.Size && !value.IsComplete && range.IsKeyInRange(value.Current.Key))
                     {
                         int ordinal;
-                        bool exists = me.ExistsUsingBinarySearch(_itemComparer, new Element(value.Current.Key), out ordinal);
+                        var exists = me.ExistsUsingBinarySearch(_itemComparer, new Element(value.Current.Key), out ordinal);
                         DuplicateKeyException.Assert(!exists || value.AllowUpdate);
 
                         if (exists)
@@ -217,9 +217,9 @@ namespace CSharpTest.Net.Collections
                     ordinal = me.Count - 1;
 
                 if (ordinal > 0) range.SetMinKey(me[ordinal - 1].Key);
-                if (ordinal < (me.Count - 1)) range.SetMaxKey(me[ordinal + 1].Key);
+                if (ordinal < me.Count - 1) range.SetMaxKey(me[ordinal + 1].Key);
 
-                using (NodePin child = _storage.Lock(thisLock, me[ordinal].ChildNode))
+                using (var child = _storage.Lock(thisLock, me[ordinal].ChildNode))
                     counter += AddRange(child, ref range, value, thisLock, ordinal);
             }
             return counter;
@@ -240,23 +240,23 @@ namespace CSharpTest.Net.Collections
             NodePin oldRoot = null;
             if (bulkOptions.InputIsSorted == false)
             {
-                KeyValueSerializer<TKey, TValue> kvserializer = new KeyValueSerializer<TKey, TValue>(_options.KeySerializer, _options.ValueSerializer);
+                var kvserializer = new KeyValueSerializer<TKey, TValue>(_options.KeySerializer, _options.ValueSerializer);
                 items = new OrderedKeyValuePairs<TKey, TValue>(_options.KeyComparer, items, kvserializer)
                     {
                         DuplicateHandling = bulkOptions.DuplicateHandling
                     };
             }
 
-            List<IStorageHandle> handles = new List<IStorageHandle>();
+            var handles = new List<IStorageHandle>();
             try
             {
-                int counter = 0;
-                using (RootLock root = LockRoot(LockType.Insert, "Merge", false))
+                var counter = 0;
+                using (var root = LockRoot(LockType.Insert, "Merge", false))
                 {
                     if (root.Pin.Ptr.Count != 1)
                         throw new InvalidDataException();
 
-                    NodeHandle oldRootHandle = root.Pin.Ptr[0].ChildNode;
+                    var oldRootHandle = root.Pin.Ptr[0].ChildNode;
                     oldRoot = _storage.Lock(root.Pin, oldRootHandle);
 
                     if (oldRoot.Ptr.Count == 0 || bulkOptions.ReplaceContents)
@@ -274,13 +274,13 @@ namespace CSharpTest.Net.Collections
                             .Merge(_options.KeyComparer, bulkOptions.DuplicateHandling, EnumerateNodeContents(oldRoot), items);
                     }
 
-                    Node newtree = BulkWrite(handles, ref counter, items);
+                    var newtree = BulkWrite(handles, ref counter, items);
                     if (newtree == null) // null when enumeration was empty
                         return 0;
 
-                    using (NodeTransaction trans = _storage.BeginTransaction())
+                    using (var trans = _storage.BeginTransaction())
                     {
-                        Node rootNode = trans.BeginUpdate(root.Pin);
+                        var rootNode = trans.BeginUpdate(root.Pin);
                         rootNode.ReplaceChild(0, oldRootHandle, new NodeHandle(newtree.StorageHandle));
                         trans.Commit();
                     }
@@ -305,7 +305,7 @@ namespace CSharpTest.Net.Collections
                 if (oldRoot != null)
                     oldRoot.Dispose();
 
-                foreach(IStorageHandle sh in handles)
+                foreach(var sh in handles)
                 {
                     try { _storage.Storage.Destroy(sh); }
                     catch (ThreadAbortException) { throw; }
@@ -317,15 +317,15 @@ namespace CSharpTest.Net.Collections
 
         private Node BulkWrite(ICollection<IStorageHandle> handles, ref int counter, IEnumerable<KeyValuePair<TKey, TValue>> itemsEnum)
         {
-            List<Node> working = new List<Node>();
+            var working = new List<Node>();
             Node leafNode = null;
             
-            using (IEnumerator<KeyValuePair<TKey, TValue>> items = itemsEnum.GetEnumerator())
+            using (var items = itemsEnum.GetEnumerator())
             {
-                bool more = items.MoveNext();
+                var more = items.MoveNext();
                 while (more)
                 {
-                    NodeHandle handle = new NodeHandle(_storage.Storage.Create());
+                    var handle = new NodeHandle(_storage.Storage.Create());
                     handles.Add(handle.StoreHandle);
 
                     leafNode = new Node(handle.StoreHandle, _options.MaximumValueNodes);
@@ -355,17 +355,17 @@ namespace CSharpTest.Net.Collections
             }
 
             // Reballance of right-edge
-            for (int i = 1; i < working.Count; i++)
+            for (var i = 1; i < working.Count; i++)
             {
-                Node me = working[i];
-                bool isleaf = me.IsLeaf;
-                int limitMin = isleaf ? _options.MinimumValueNodes : _options.MinimumChildNodes;
+                var me = working[i];
+                var isleaf = me.IsLeaf;
+                var limitMin = isleaf ? _options.MinimumValueNodes : _options.MinimumChildNodes;
                 if (me.Count < limitMin)
                 {
-                    Node parent = working[i - 1];
-                    int prev = parent.Count - 2;
+                    var parent = working[i - 1];
+                    var prev = parent.Count - 2;
                     Node prevNode;
-                    bool success = _storage.Storage.TryGetNode(parent[prev].ChildNode.StoreHandle,
+                    var success = _storage.Storage.TryGetNode(parent[prev].ChildNode.StoreHandle,
                                                                out prevNode, _storage.NodeSerializer);
                     AssertionFailedException.Assert(success);
                     prevNode = prevNode.CloneForWrite(LockType.Insert);
@@ -374,7 +374,7 @@ namespace CSharpTest.Net.Collections
 
                     while (me.Count < limitMin)
                     {
-                        Element item = prevNode[prevNode.Count - 1];
+                        var item = prevNode[prevNode.Count - 1];
                         if (me.Count + 1 == limitMin)
                         {
                             if (isleaf) me.Insert(0, item);
@@ -391,7 +391,7 @@ namespace CSharpTest.Net.Collections
                 }
             }
             // Save the remaining nodes
-            for (int i = working.Count - 1; i >= 0; i--)
+            for (var i = working.Count - 1; i >= 0; i--)
             {
                 _storage.Storage.Update(working[i].StorageHandle, _storage.NodeSerializer, working[i]);
                 working[i].ToReadOnly();
@@ -411,7 +411,7 @@ namespace CSharpTest.Net.Collections
                     working[0].Insert(0, new Element(default(TKey), new NodeHandle(working[1].StorageHandle)));
                 index++;
             }
-            Node parent = working[index];
+            var parent = working[index];
 
             if (parent.Count == parent.Size)
             {
@@ -421,7 +421,7 @@ namespace CSharpTest.Net.Collections
                 parent = new Node(_storage.Storage.Create(), _options.MaximumChildNodes);
                 handles.Add(parent.StorageHandle);
 
-                int count = working.Count;
+                var count = working.Count;
                 InsertWorkingNode(handles, working, index - 1, new Element(child.Key, new NodeHandle(parent.StorageHandle)));
                 if (count < working.Count)
                     index++;
@@ -442,18 +442,18 @@ namespace CSharpTest.Net.Collections
         {
             if (root.Ptr.IsLeaf)
             {
-                for (int ix = 0; ix < root.Ptr.Count; ix++)
+                for (var ix = 0; ix < root.Ptr.Count; ix++)
                     yield return root.Ptr[ix].ToKeyValuePair();
                 yield break;
             }
 
-            Stack<KeyValuePair<NodePin, int>> todo = new Stack<KeyValuePair<NodePin, int>>();
+            var todo = new Stack<KeyValuePair<NodePin, int>>();
             todo.Push(new KeyValuePair<NodePin, int>(root, 0));
             try
             {
                 while (todo.Count > 0)
                 {
-                    KeyValuePair<NodePin, int> cur = todo.Pop();
+                    var cur = todo.Pop();
                     if (cur.Value == cur.Key.Ptr.Count)
                     {
                         if (todo.Count == 0)
@@ -463,12 +463,12 @@ namespace CSharpTest.Net.Collections
                     }
                     todo.Push(new KeyValuePair<NodePin, int>(cur.Key, cur.Value + 1));
 
-                    NodePin child = _storage.Lock(cur.Key, cur.Key.Ptr[cur.Value].ChildNode);
+                    var child = _storage.Lock(cur.Key, cur.Key.Ptr[cur.Value].ChildNode);
                     if (child.Ptr.IsLeaf)
                     {
                         using (child)
                         {
-                            for (int ix = 0; ix < child.Ptr.Count; ix++)
+                            for (var ix = 0; ix < child.Ptr.Count; ix++)
                                 yield return child.Ptr[ix].ToKeyValuePair();
                         }
                     }
@@ -487,11 +487,11 @@ namespace CSharpTest.Net.Collections
 
         private void DeleteTree(NodePin pin)
         {
-            List<NodeHandle> children = new List<NodeHandle>();
+            var children = new List<NodeHandle>();
 
             if (!pin.Ptr.IsLeaf)
             {
-                for (int i = 0; i < pin.Ptr.Count; i++)
+                for (var i = 0; i < pin.Ptr.Count; i++)
                     children.Add(pin.Ptr[i].ChildNode);
             }
 
@@ -507,9 +507,9 @@ namespace CSharpTest.Net.Collections
             {
                 if (children.Count > 0)
                 {
-                    foreach (NodeHandle h in children)
+                    foreach (var h in children)
                     {
-                        using (NodePin ch = _storage.Lock(pin, h))
+                        using (var ch = _storage.Lock(pin, h))
                         {
                             DeleteTree(ch);
                         }

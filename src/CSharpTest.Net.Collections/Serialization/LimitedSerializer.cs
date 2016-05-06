@@ -63,7 +63,7 @@ namespace CSharpTest.Net.Serialization
             {
                 Check.Assert<InvalidDataException>(value.Length <= _maxLength);
                 VariantNumberSerializer.Int32.WriteTo(value.Length, stream);
-                foreach (char ch in value)
+                foreach (var ch in value)
                     VariantNumberSerializer.Int32.WriteTo(ch, stream);
             }
         }
@@ -72,14 +72,14 @@ namespace CSharpTest.Net.Serialization
         {
             unchecked
             {
-                int sz = VariantNumberSerializer.Int32.ReadFrom(stream);
+                var sz = VariantNumberSerializer.Int32.ReadFrom(stream);
                 if (sz == 0) return string.Empty;
                 if (sz == int.MinValue)
                     return null;
 
                 Check.Assert<InvalidDataException>(sz >= 0 && sz <= _maxLength);
-                char[] chars = new char[sz];
-                for (int i = 0; i < sz; i++)
+                var chars = new char[sz];
+                for (var i = 0; i < sz; i++)
                     chars[i] = (char)VariantNumberSerializer.Int32.ReadFrom(stream);
                 return new String(chars);
             }
@@ -98,18 +98,18 @@ namespace CSharpTest.Net.Serialization
             {
                 Check.Assert<InvalidDataException>(value.Length <= _maxLength);
                 VariantNumberSerializer.Int32.WriteTo(value.Length, stream);
-                foreach (byte b in value)
+                foreach (var b in value)
                     stream.WriteByte(b);
             }
         }
         byte[] ISerializer<byte[]>.ReadFrom(Stream stream)
         {
-            int sz = VariantNumberSerializer.Int32.ReadFrom(stream);
+            var sz = VariantNumberSerializer.Int32.ReadFrom(stream);
             if (sz == int.MinValue)
                 return null;
 
             Check.Assert<InvalidDataException>(sz >= 0 && sz <= _maxLength);
-            byte[] bytes = new byte[sz];
+            var bytes = new byte[sz];
             int pos = 0, len;
             while (0 != (len = stream.Read(bytes, pos, sz - pos)))
                 pos += len;

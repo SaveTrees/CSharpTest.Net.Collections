@@ -71,8 +71,8 @@ namespace CSharpTest.Net.Collections
                 }
                 else
                 {
-                    using (RootLock root = _tree.LockRoot(LockType.Read, "Enumerator"))
-                    using (NodePin first = SeekFirst(root.Pin, out _nextKey, out _hasMore))
+                    using (var root = _tree.LockRoot(LockType.Read, "Enumerator"))
+                    using (var first = SeekFirst(root.Pin, out _nextKey, out _hasMore))
                     {
                         FillFromNode(first.Ptr);
                         _enumComplete = _currentLimit == 0;
@@ -105,8 +105,8 @@ namespace CSharpTest.Net.Collections
                     return false;
                 }
 
-                bool success = false;
-                using (RootLock root = _tree.LockRoot(LockType.Read, "Enumerator"))
+                var success = false;
+                using (var root = _tree.LockRoot(LockType.Read, "Enumerator"))
                 {
                     int offset;
                     NodePin next;
@@ -158,10 +158,10 @@ namespace CSharpTest.Net.Collections
                 {
                     while (myPin != null)
                     {
-                        Node me = myPin.Ptr;
+                        var me = myPin.Ptr;
                         if (me.IsLeaf)
                         {
-                            NodePin pin = myPin;
+                            var pin = myPin;
                             myPin = null;
                             return pin;
                         }
@@ -192,9 +192,9 @@ namespace CSharpTest.Net.Collections
                 nextKey = default(TKey);
                 hasMore = false;
 
-                Element find = new Element(key);
+                var find = new Element(key);
                 NodePin next = null;
-                NodePin current = thisLock;
+                var current = thisLock;
 
                 try
                 {
@@ -202,7 +202,7 @@ namespace CSharpTest.Net.Collections
 
                     while (true)
                     {
-                        Node me = current.Ptr;
+                        var me = current.Ptr;
                         me.ExistsUsingBinarySearch(_tree._itemComparer, find, out ordinal);
                         if (me.IsLeaf)
                         {

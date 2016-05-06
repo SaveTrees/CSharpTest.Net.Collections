@@ -55,7 +55,7 @@ namespace CSharpTest.Net.Collections
             //Trace.TraceInformation(format, args);
             if (_debugOut != null)
             {
-                using (StringWriter tmp = new StringWriter())
+                using (var tmp = new StringWriter())
                 {
                     Print(tmp, DebugFormat.Compact);
                     tmp.Write("  -  " + format, args);
@@ -83,19 +83,19 @@ namespace CSharpTest.Net.Collections
         [Conditional("DEBUG")]
         public void Print(TextWriter output, DebugFormat format)
         {
-            using (RootLock root = LockRoot(LockType.Read, "Print", true))
+            using (var root = LockRoot(LockType.Read, "Print", true))
                 Print(root.Pin, output, 0, format);
         }
 
         [Conditional("DEBUG")]
         private void Print(NodePin node, TextWriter output, int depth, DebugFormat format)
         {
-            bool formatted = format != DebugFormat.Compact;
-            string prefix = formatted ? Environment.NewLine + new String(' ', depth << 1) : "";
+            var formatted = format != DebugFormat.Compact;
+            var prefix = formatted ? Environment.NewLine + new String(' ', depth << 1) : "";
             output.Write("{0}{{", formatted ? " " : "");
             if (formatted) prefix += "  ";
 
-            for (int i = 0; i < node.Ptr.Count; i++)
+            for (var i = 0; i < node.Ptr.Count; i++)
             {
                 if(i > 0 || node.Ptr[i].IsValue)
                     output.Write("{0}{1}", prefix, node.Ptr[i].Key);
@@ -108,7 +108,7 @@ namespace CSharpTest.Net.Collections
 
                 if (node.Ptr[i].IsNode)
                 {
-                    using (NodePin child = _storage.Lock(node, node.Ptr[i].ChildNode))
+                    using (var child = _storage.Lock(node, node.Ptr[i].ChildNode))
                     {
                         Print(child, output, depth + 1, format);
 #if DEBUG
@@ -141,7 +141,7 @@ namespace CSharpTest.Net.Collections
         public void Validate()
         {
 #if DEBUG
-            using (RootLock root = LockRoot(LockType.Read, "Validate", true))
+            using (var root = LockRoot(LockType.Read, "Validate", true))
                 Validate(root.Pin, null, int.MinValue, int.MaxValue);
 #endif
         }
@@ -150,7 +150,7 @@ namespace CSharpTest.Net.Collections
         private int Validate(NodePin thisLock, NodePin parent, int parentIx, int depthToValidate)
         {
             Assert(thisLock != null, "Null node lock encountered.");
-            Node me = thisLock.Ptr;
+            var me = thisLock.Ptr;
             Assert(me != null, "Null node reference encountered.");
 
             if (parent == null || parent.Ptr.IsRoot)
@@ -173,8 +173,8 @@ namespace CSharpTest.Net.Collections
                 //Assert(parent.Ptr[parentIx].Key.CompareTo(List[0].Key) == 0, "My first key not in parent.");
             }
 
-            int depth = 0;
-            for (int i = 0; i < me.Count; i++)
+            var depth = 0;
+            for (var i = 0; i < me.Count; i++)
             {
                 if (parent != null)
                 {
@@ -192,7 +192,7 @@ namespace CSharpTest.Net.Collections
                 if (!me.IsLeaf && depthToValidate > 0)
                 {
                     int testDepth;
-                    using (NodePin node = _storage.Lock(thisLock, me[i].ChildNode))
+                    using (var node = _storage.Lock(thisLock, me[i].ChildNode))
                         testDepth = Validate(node, thisLock, i, depthToValidate - 1);
                     if (i == 0)
                         depth = testDepth;
@@ -200,10 +200,10 @@ namespace CSharpTest.Net.Collections
                         Assert(depth == testDepth, "Expected each node to have the same depth");
                 }
             }
-            for (int i = me.Count; i < me.Size && !me.IsRoot; i++)
+            for (var i = me.Count; i < me.Size && !me.IsRoot; i++)
             {
                 Assert(me[i].IsEmpty, "Non-cleared element value.");
-                bool isKeyClass = ReferenceEquals(default(TKey), null);
+                var isKeyClass = ReferenceEquals(default(TKey), null);
                 Assert(isKeyClass 
                     ? ReferenceEquals(me[i].Key, null) 
                     : _keyComparer.Compare(me[i].Key, default(TKey)) == 0, "Non-cleared element key.");

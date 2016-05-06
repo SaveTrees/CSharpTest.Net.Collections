@@ -47,16 +47,16 @@ namespace CSharpTest.Net.IO
             _streams = new Stream[maxItem];
             _handles = new Mutex[maxItem];
 
-            for (int i = 0; i < maxItem; i++)
+            for (var i = 0; i < maxItem; i++)
                 _handles[i] = new Mutex();
         }
 
         /// <summary></summary>
         protected override void Dispose(bool disposing)
         {
-            for (int i = 0; i < _handles.Length; i++)
+            for (var i = 0; i < _handles.Length; i++)
                 _handles[i].Close();
-            for (int i = 0; i < _streams.Length; i++)
+            for (var i = 0; i < _streams.Length; i++)
                 if (_streams[i] != null)
                     _streams[i].Dispose();
         }
@@ -64,7 +64,7 @@ namespace CSharpTest.Net.IO
 
         private void InvalidHandle(Mutex ownerHandle)
         {
-            for (int i = 0; i < _handles.Length; i++)
+            for (var i = 0; i < _handles.Length; i++)
             {
                 if(ReferenceEquals(_handles[i], ownerHandle))
                     _handles[i] = new Mutex();
@@ -91,7 +91,7 @@ namespace CSharpTest.Net.IO
             catch (AbandonedMutexException ae)
             { handle = ae.MutexIndex; }
 
-            Stream stream = _streams[handle];
+            var stream = _streams[handle];
             if (stream == null || !stream.CanRead)
             {
                 try { } 

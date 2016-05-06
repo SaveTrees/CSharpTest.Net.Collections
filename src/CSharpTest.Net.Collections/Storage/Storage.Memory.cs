@@ -56,7 +56,7 @@ namespace CSharpTest.Net.Storage
         public bool TryGetNode<TNode>(IStorageHandle handleIn, out TNode node, ISerializer<TNode> serializer)
         {
             InvalidNodeHandleException.Assert(handleIn is MyStorageHandle);
-            MyStorageHandle handle = (MyStorageHandle)handleIn;
+            var handle = (MyStorageHandle)handleIn;
             if (handle.Node != null)
             {
                 node = (TNode)handle.Node;
@@ -76,14 +76,14 @@ namespace CSharpTest.Net.Storage
 
         public IStorageHandle Create()
         {
-            MyStorageHandle handle = new MyStorageHandle();
+            var handle = new MyStorageHandle();
             return handle;
         }
 
         public void Destroy(IStorageHandle handleIn)
         {
             InvalidNodeHandleException.Assert(handleIn is MyStorageHandle);
-            MyStorageHandle handle = (MyStorageHandle)handleIn;
+            var handle = (MyStorageHandle)handleIn;
 
             handle.Clear();
         }
@@ -91,7 +91,7 @@ namespace CSharpTest.Net.Storage
         public void Update<T>(IStorageHandle handleIn, ISerializer<T> serializer, T node)
         {
             InvalidNodeHandleException.Assert(handleIn is MyStorageHandle);
-            MyStorageHandle handle = (MyStorageHandle)handleIn;
+            var handle = (MyStorageHandle)handleIn;
             handle.Node = node;
         }
         [System.Diagnostics.DebuggerDisplay("{_id}")]

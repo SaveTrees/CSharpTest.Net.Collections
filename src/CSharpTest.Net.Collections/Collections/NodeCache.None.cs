@@ -84,7 +84,7 @@ namespace CSharpTest.Net.Collections
                 }
 
                 refobj = null;
-                bool acquired = lck.TryWrite(base.Options.LockTimeout);
+                var acquired = lck.TryWrite(base.Options.LockTimeout);
                 DeadlockException.Assert(acquired);
                 return lck;
             }

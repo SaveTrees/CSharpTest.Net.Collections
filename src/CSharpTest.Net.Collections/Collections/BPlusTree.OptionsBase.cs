@@ -340,7 +340,7 @@ namespace CSharpTest.Net.Collections
             get { return _minimumChildNodes; }
             set
             {
-                InvalidConfigurationValueException.Assert(value >= 2 && value <= (MaximumChildNodes / 2), "MinimumChildNodes", "The valid range is from 2 to (MaximumChildNodes / 2).");
+                InvalidConfigurationValueException.Assert(value >= 2 && value <= MaximumChildNodes / 2, "MinimumChildNodes", "The valid range is from 2 to (MaximumChildNodes / 2).");
                 _minimumChildNodes = value;
                 _fillChildNodes = ((_maximumChildNodes - _minimumChildNodes) >> 1) + _minimumChildNodes;
             }
@@ -373,7 +373,7 @@ namespace CSharpTest.Net.Collections
             get { return _minimumValueNodes; }
             set
             {
-                InvalidConfigurationValueException.Assert(value >= 2 && value <= (MaximumValueNodes / 2), "MinimumValueNodes", "The valid range is from 2 to (MaximumValueNodes / 2).");
+                InvalidConfigurationValueException.Assert(value >= 2 && value <= MaximumValueNodes / 2, "MinimumValueNodes", "The valid range is from 2 to (MaximumValueNodes / 2).");
                 _minimumValueNodes = value;
                 _fillValueNodes = ((_maximumValueNodes - _minimumValueNodes) >> 1) + _minimumValueNodes;
             }

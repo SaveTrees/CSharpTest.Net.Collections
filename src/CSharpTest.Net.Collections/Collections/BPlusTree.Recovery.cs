@@ -33,24 +33,24 @@ namespace CSharpTest.Net.Collections
             options.CreateFile = CreatePolicy.Never;
             options.ReadOnly = true;
 
-            using (INodeStorage store = options.CreateStorage())
+            using (var store = options.CreateStorage())
             {
                 bool isnew;
                 Node root;
-                IStorageHandle hroot = store.OpenRoot(out isnew);
+                var hroot = store.OpenRoot(out isnew);
                 if (isnew)
                     yield break;
 
-                NodeSerializer nodeReader = new NodeSerializer(options, new NodeHandleSerializer(store));
+                var nodeReader = new NodeSerializer(options, new NodeHandleSerializer(store));
                 if (isnew || !store.TryGetNode(hroot, out root, nodeReader))
                     throw new InvalidDataException();
 
-                Stack<KeyValuePair<Node, int>> todo = new Stack<KeyValuePair<Node, int>>();
+                var todo = new Stack<KeyValuePair<Node, int>>();
                 todo.Push(new KeyValuePair<Node, int>(root, 0));
 
                 while (todo.Count > 0)
                 {
-                    KeyValuePair<Node, int> cur = todo.Pop();
+                    var cur = todo.Pop();
                     if (cur.Value == cur.Key.Count)
                         continue;
 
@@ -62,7 +62,7 @@ namespace CSharpTest.Net.Collections
 
                     if (child.IsLeaf)
                     {
-                        for (int ix = 0; ix < child.Count; ix++)
+                        for (var ix = 0; ix < child.Count; ix++)
                             yield return child[ix].ToKeyValuePair();
                     }
                     else
@@ -88,8 +88,8 @@ namespace CSharpTest.Net.Collections
         /// <returns>Returns 0 on failure, or the number of records successfully retrieved from the original file </returns>
         public static int RecoverFile(Options options)
         {
-            int recoveredCount = 0;
-            string filename = options.FileName;
+            var recoveredCount = 0;
+            var filename = options.FileName;
 
             if (String.IsNullOrEmpty(filename))
                 throw new InvalidConfigurationValueException("FileName", "The FileName property was not specified.");
@@ -98,8 +98,8 @@ namespace CSharpTest.Net.Collections
             if (options.StorageType != StorageType.Disk)
                 throw new InvalidConfigurationValueException("StorageType", "The storage type is not set to 'Disk'.");
 
-            int ix = 0;
-            string tmpfilename = filename + ".recovered";
+            var ix = 0;
+            var tmpfilename = filename + ".recovered";
             while (File.Exists(tmpfilename))
                 tmpfilename = filename + ".recovered" + ix++;
 
@@ -110,9 +110,9 @@ namespace CSharpTest.Net.Collections
                 tmpoptions.FileName = tmpfilename;
                 tmpoptions.LockingFactory = new LockFactory<IgnoreLocking>();
                 
-                using (BPlusTree<TKey, TValue> tmpFile = new BPlusTree<TKey, TValue>(tmpoptions))
+                using (var tmpFile = new BPlusTree<TKey, TValue>(tmpoptions))
                 {
-                    BulkInsertOptions bulkOptions = new BulkInsertOptions();
+                    var bulkOptions = new BulkInsertOptions();
                     bulkOptions.DuplicateHandling = DuplicateHandling.LastValueWins;
 
                     recoveredCount = tmpFile.BulkInsert(RecoveryScan(options, FileShare.None), bulkOptions);
@@ -127,7 +127,7 @@ namespace CSharpTest.Net.Collections
             if (recoveredCount > 0)
             {
                 ix = 0;
-                string backupName = filename + ".deleted";
+                var backupName = filename + ".deleted";
                 while (File.Exists(backupName))
                     backupName = filename + ".deleted" + ix++;
 
@@ -153,7 +153,7 @@ namespace CSharpTest.Net.Collections
         {
             options = options.Clone();
             options.CreateFile = CreatePolicy.Never;
-            string filename = options.FileName;
+            var filename = options.FileName;
             if (String.IsNullOrEmpty(filename))
                 throw new InvalidConfigurationValueException("FileName", "The FileName property was not specified.");
             if (!File.Exists(filename))
@@ -161,22 +161,22 @@ namespace CSharpTest.Net.Collections
             if (options.StorageType != StorageType.Disk)
                 throw new InvalidConfigurationValueException("StorageType", "The storage type is not set to 'Disk'.");
 
-            using (FragmentedFile file = new FragmentedFile(filename, options.FileBlockSize, 1, 1, FileAccess.Read, sharing, FileOptions.None))
+            using (var file = new FragmentedFile(filename, options.FileBlockSize, 1, 1, FileAccess.Read, sharing, FileOptions.None))
             {
-                NodeSerializer nodeReader = new NodeSerializer(options, new NodeHandleSerializer(new Storage.BTreeFileStore.HandleSerializer()));
+                var nodeReader = new NodeSerializer(options, new NodeHandleSerializer(new Storage.BTreeFileStore.HandleSerializer()));
 
-                foreach (KeyValuePair<long, Stream> block in file.ForeachBlock(true, false, IngoreDataInvalid))
+                foreach (var block in file.ForeachBlock(true, false, IngoreDataInvalid))
                 {
-                    List<KeyValuePair<TKey, TValue>> found = new List<KeyValuePair<TKey, TValue>>();
+                    var found = new List<KeyValuePair<TKey, TValue>>();
                     try
                     {
-                        foreach (KeyValuePair<TKey, TValue> entry in nodeReader.RecoverLeaf(block.Value))
+                        foreach (var entry in nodeReader.RecoverLeaf(block.Value))
                             found.Add(entry);
                     }
                     catch
                     { /* Serialization error: Ignore and continue */ }
 
-                    foreach (KeyValuePair<TKey, TValue> entry in found)
+                    foreach (var entry in found)
                         yield return entry;
                 }
             }

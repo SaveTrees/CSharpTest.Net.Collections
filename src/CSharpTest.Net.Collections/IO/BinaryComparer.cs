@@ -32,7 +32,7 @@ namespace CSharpTest.Net.IO
             if (ar1 == null) return ar2 == null ? 0 : -1;
             if (ar2 == null) return 1;
 
-            int result = 0;
+            var result = 0;
             int i = 0, stop = Math.Min(ar1.Length, ar2.Length);
 
             for (; 0 == result && i < stop; i++)

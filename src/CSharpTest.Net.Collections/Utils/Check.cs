@@ -41,10 +41,10 @@ static partial class Check
     {
         if (!condition)
         {
-            ConstructorInfo ci = typeof (TException).GetConstructor(new Type[] {typeof (string)});
+            var ci = typeof (TException).GetConstructor(new Type[] {typeof (string)});
             if (ci != null)
             {
-                TException e = (TException) ci.Invoke(new object[] {message});
+                var e = (TException) ci.Invoke(new object[] {message});
                 throw e;
             }
             throw new TException();
@@ -78,10 +78,10 @@ static partial class Check
     {
         if (!condition)
         {
-            ConstructorInfo ci = typeof (TException).GetConstructor(new Type[] {typeof (string), typeof (Exception)});
+            var ci = typeof (TException).GetConstructor(new Type[] {typeof (string), typeof (Exception)});
             if (ci != null)
             {
-                TException e = (TException) ci.Invoke(new object[] {message, innerException});
+                var e = (TException) ci.Invoke(new object[] {message, innerException});
                 throw e;
             }
             throw new TException();

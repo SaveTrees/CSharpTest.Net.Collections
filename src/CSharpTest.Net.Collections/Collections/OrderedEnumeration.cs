@@ -120,25 +120,25 @@ namespace CSharpTest.Net.Collections
 
         private IEnumerable<T> PagedAndOrdered()
         {
-            T[] items = new T[Math.Min(InMemoryLimit, 2048)];
-            using (DisposingList resources = new DisposingList())
+            var items = new T[Math.Min(InMemoryLimit, 2048)];
+            using (var resources = new DisposingList())
             {
-                List<IEnumerable<T>> orderedSet = new List<IEnumerable<T>>();
-                int count = 0;
+                var orderedSet = new List<IEnumerable<T>>();
+                var count = 0;
 
-                foreach (T item in _unordered)
+                foreach (var item in _unordered)
                 {
                     if (_memoryLimit > 0 && count == _memoryLimit)
                     {
                         if (_serializer != null)
                         {
-                            TempFile temp = new TempFile();
+                            var temp = new TempFile();
                             resources.Add(temp);
                             Stream io;
                             resources.Add(io = new FileStream(temp.TempPath, FileMode.Create, FileAccess.ReadWrite, FileShare.Read));
 
                             MergeSort.Sort(items, _comparer);
-                            foreach (T i in items)
+                            foreach (var i in items)
                                 _serializer.WriteTo(i, io);
                             io.Position = 0;
                             orderedSet.Add(Read(temp, io));
@@ -173,7 +173,7 @@ namespace CSharpTest.Net.Collections
                     result = Merge(_comparer, orderedSet.ToArray());
                 }
 
-                foreach (T item in result)
+                foreach (var item in result)
                     yield return item;
             }
         }
@@ -183,7 +183,7 @@ namespace CSharpTest.Net.Collections
             using (file)
             using (io)
             {
-                for (int i = 0; i < _memoryLimit; i++)
+                for (var i = 0; i < _memoryLimit; i++)
                     yield return _serializer.ReadFrom(io);
             }
         }
@@ -193,14 +193,14 @@ namespace CSharpTest.Net.Collections
         /// </summary>
         public static IEnumerable<T> Merge(IComparer<T> comparer, IEnumerable<T> x, IEnumerable<T> y)
         {
-            using(IEnumerator<T> left = x.GetEnumerator())
-            using(IEnumerator<T> right = y.GetEnumerator())
+            using(var left = x.GetEnumerator())
+            using(var right = y.GetEnumerator())
             {
-                bool lvalid = left.MoveNext();
-                bool rvalid = right.MoveNext();
+                var lvalid = left.MoveNext();
+                var rvalid = right.MoveNext();
                 while(lvalid || rvalid)
                 {
-                    int cmp = !rvalid ? -1 : !lvalid ? 1 : comparer.Compare(left.Current, right.Current);
+                    var cmp = !rvalid ? -1 : !lvalid ? 1 : comparer.Compare(left.Current, right.Current);
                     if (cmp <= 0)
                     {
                         yield return left.Current;
@@ -245,7 +245,7 @@ namespace CSharpTest.Net.Collections
             if (count == 2)
                 return Merge(comparer, enums[start], enums[start + 1]);
 
-            int half = count/2;
+            var half = count/2;
             return Merge(comparer, 
                 Merge(comparer, start, half, enums),
                 Merge(comparer, start + half, count - half, enums)
@@ -304,7 +304,7 @@ namespace CSharpTest.Net.Collections
 // ReSharper restore RedundantBoolCompare
                 {
                     _next = _enumerator.Current;
-                    int cmp = _comparer.Compare(_current, _next);
+                    var cmp = _comparer.Compare(_current, _next);
                     if (cmp > 0)
                         throw new InvalidDataException("Enumeration out of sequence.");
                     if (cmp != 0 || _duplicateHandling == DuplicateHandling.None)

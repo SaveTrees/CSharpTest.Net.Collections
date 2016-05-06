@@ -71,7 +71,7 @@ namespace CSharpTest.Net.Synchronization
         /// </summary>
         public virtual void Dispose()
         {
-            object exit = Interlocked.Exchange(ref _sync, null);
+            var exit = Interlocked.Exchange(ref _sync, null);
             if(_event != null)
                 _event.Close();
 
@@ -94,7 +94,7 @@ namespace CSharpTest.Net.Synchronization
         public bool TryRead(int millisecondsTimeout)
         {
             if (_sync == null) throw new ObjectDisposedException(GetType().FullName);
-            bool success = false;
+            var success = false;
             try { } 
             finally 
             {
@@ -122,7 +122,7 @@ namespace CSharpTest.Net.Synchronization
             finally 
             {
                 // Decrement the reader count and, if we are the last, set the wake event for a writer
-                int newCount = Interlocked.Decrement(ref _readersCount);
+                var newCount = Interlocked.Decrement(ref _readersCount);
                 if (_targetReaders == newCount && _event != null)
                     _event.Set();
 
@@ -139,7 +139,7 @@ namespace CSharpTest.Net.Synchronization
         /// </summary>
         public virtual bool TryWrite(int millisecondsTimeout)
         {
-            bool success = false;
+            var success = false;
             try { } 
             finally 
             {
@@ -173,7 +173,7 @@ namespace CSharpTest.Net.Synchronization
         {
             // if this thread is already the writer, we can just return
 #if SUPPORT_RECURSION
-            int threadId = Thread.CurrentThread.ManagedThreadId;
+            var threadId = Thread.CurrentThread.ManagedThreadId;
             if (_exclusiveThreadId == threadId)
             {
                 _writeRecursiveCount++;
@@ -197,8 +197,8 @@ namespace CSharpTest.Net.Synchronization
             // spin loop waiting for the readers to release.  You might notice that 
             // our timeout is anything but accurate here, but it should prove to be 
             // 'ballpark' close :)
-            int loop = 0;
-            int spinLoops = Math.Min(millisecondsTimeout, SpinLoops);
+            var loop = 0;
+            var spinLoops = Math.Min(millisecondsTimeout, SpinLoops);
             while (_readersCount > targetReaders && loop < millisecondsTimeout)
             {
                 // first few rounds we use a spin loop

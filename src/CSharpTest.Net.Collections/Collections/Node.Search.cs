@@ -12,206 +12,167 @@
  * limitations under the License.
  */
 #endregion
-using System;
 using System.Collections.Generic;
 
 namespace CSharpTest.Net.Collections
 {
-    partial class BPlusTree<TKey, TValue>
-    {
-        private struct UpdateInfo : IUpdateValue<TKey, TValue>
-        {
-            private bool _updated;
-            private TValue _oldValue, _newValue;
-            private KeyValueUpdate<TKey, TValue> _fnUpdate;
-            public UpdateInfo(KeyValueUpdate<TKey, TValue> fnUpdate) : this()
-            {
-                _fnUpdate = fnUpdate;
-            }
-            public UpdateInfo(TValue newValue) : this()
-            {
-                _newValue = newValue;
-            }
-            public bool UpdateValue(TKey key, ref TValue value)
-            {
-                _updated = true;
-                _oldValue = value;
-                if (_fnUpdate != null)
-                    value = _fnUpdate(key, value);
-                else
-                    value = _newValue;
-                return !EqualityComparer<TValue>.Default.Equals(value, _oldValue);
-            }
-            public bool Updated { get { return _updated; } }
-        }
-        private struct UpdateIfValue : IUpdateValue<TKey, TValue>
-        {
-            private bool _updated;
-            private TValue _comparisonValue, _newValue;
-            public UpdateIfValue(TValue newValue, TValue comparisonValue)
-                : this()
-            {
-                _newValue = newValue;
-                _comparisonValue = comparisonValue;
-            }
+	partial class BPlusTree<TKey, TValue>
+	{
+		private bool Seek(NodePin thisLock, TKey key, out NodePin pin, out int offset)
+		{
+			NodePin myPin = thisLock, nextPin = null;
+			try
+			{
+				while (myPin != null)
+				{
+					var me = myPin.Ptr;
 
-            public bool UpdateValue(TKey key, ref TValue value)
-            {
-                if(EqualityComparer<TValue>.Default.Equals(value, _comparisonValue))
-                {
-                    _updated = true;
-                    if(!EqualityComparer<TValue>.Default.Equals(value, _newValue))
-                    {
-                        value = _newValue;
-                        return true;
-                    }
-                }
-                return false;
-            }
-            public bool Updated { get { return _updated; } }
-        }
+					var isValueNode = me.IsLeaf;
+					int ordinal;
+					if (me.ExistsUsingBinarySearch(_itemComparer, new Element(key), out ordinal) && isValueNode)
+					{
+						pin = myPin;
+						myPin = null;
+						offset = ordinal;
+						return true;
+					}
+					if (isValueNode)
+						break; // not found.
 
-        private bool Seek(NodePin thisLock, TKey key, out NodePin pin, out int offset)
-        {
-            NodePin myPin = thisLock, nextPin = null;
-            try
-            {
-                while (myPin != null)
-                {
-                    Node me = myPin.Ptr;
+					nextPin = _storage.Lock(myPin, me[ordinal].ChildNode);
+					myPin.Dispose();
+					myPin = nextPin;
+					nextPin = null;
+				}
+			}
+			finally
+			{
+				if (myPin != null) myPin.Dispose();
+				if (nextPin != null) nextPin.Dispose();
+			}
 
-                    bool isValueNode = me.IsLeaf;
-                    int ordinal;
-                    if (me.ExistsUsingBinarySearch(_itemComparer, new Element(key), out ordinal) && isValueNode)
-                    {
-                        pin = myPin;
-                        myPin = null;
-                        offset = ordinal;
-                        return true;
-                    }
-                    if (isValueNode)
-                        break; // not found.
+			pin = null;
+			offset = -1;
+			return false;
+		}
 
-                    nextPin = _storage.Lock(myPin, me[ordinal].ChildNode);
-                    myPin.Dispose();
-                    myPin = nextPin;
-                    nextPin = null;
-                }
-            }
-            finally
-            {
-                if (myPin != null) myPin.Dispose();
-                if (nextPin != null) nextPin.Dispose(); 
-            }
+		private bool Search(NodePin thisLock, TKey key, ref TValue value)
+		{
+			NodePin pin;
+			int offset;
+			if (Seek(thisLock, key, out pin, out offset))
+				using (pin)
+				{
+					value = pin.Ptr[offset].Payload;
+					return true;
+				}
+			return false;
+		}
 
-            pin = null;
-            offset = -1;
-            return false;
-        }
+		private bool SeekToEdge(NodePin thisLock, bool first, out NodePin pin, out int offset)
+		{
+			NodePin myPin = thisLock, nextPin = null;
+			try
+			{
+				while (myPin != null)
+				{
+					var me = myPin.Ptr;
+					var ordinal = first
+						? 0
+						: me.Count - 1;
+					if (me.IsLeaf)
+					{
+						if (ordinal < 0 || ordinal >= me.Count)
+							break;
 
-        private bool Search(NodePin thisLock, TKey key, ref TValue value)
-        {
-            NodePin pin;
-            int offset;
-            if (Seek(thisLock, key, out pin, out offset))
-                using (pin)
-                {
-                    value = pin.Ptr[offset].Payload;
-                    return true;
-                }
-            return false;
-        }
+						pin = myPin;
+						myPin = null;
+						offset = ordinal;
+						return true;
+					}
 
-        private bool SeekToEdge(NodePin thisLock, bool first, out NodePin pin, out int offset)
-        {
-            NodePin myPin = thisLock, nextPin = null;
-            try
-            {
-                while (myPin != null)
-                {
-                    Node me = myPin.Ptr;
-                    int ordinal = first ? 0 : me.Count - 1;
-                    if (me.IsLeaf)
-                    {
-                        if (ordinal < 0 || ordinal >= me.Count)
-                            break;
+					nextPin = _storage.Lock(myPin, me[ordinal].ChildNode);
+					myPin.Dispose();
+					myPin = nextPin;
+					nextPin = null;
+				}
+			}
+			finally
+			{
+				if (myPin != null) myPin.Dispose();
+				if (nextPin != null) nextPin.Dispose();
+			}
 
-                        pin = myPin;
-                        myPin = null;
-                        offset = ordinal;
-                        return true;
-                    }
+			pin = null;
+			offset = -1;
+			return false;
+		}
 
-                    nextPin = _storage.Lock(myPin, me[ordinal].ChildNode);
-                    myPin.Dispose();
-                    myPin = nextPin;
-                    nextPin = null;
-                }
-            }
-            finally
-            {
-                if (myPin != null) myPin.Dispose();
-                if (nextPin != null) nextPin.Dispose();
-            }
+		private bool TryGetEdge(NodePin thisLock, bool first, out KeyValuePair<TKey, TValue> item)
+		{
+			NodePin pin;
+			int offset;
+			if (SeekToEdge(thisLock, first, out pin, out offset))
+			{
+				using (pin)
+				{
+					item = new KeyValuePair<TKey, TValue>(
+						pin.Ptr[offset].Key,
+						pin.Ptr[offset].Payload);
+					return true;
+				}
+			}
+			item = default(KeyValuePair<TKey, TValue>);
+			return false;
+		}
 
-            pin = null;
-            offset = -1;
-            return false;
-        }
+		private bool Update<T>(NodePin thisLock, TKey key, ref T value) where T : IUpdateValue<TKey, TValue>
+		{
+			NodePin pin;
+			int offset;
+			var found = Seek(thisLock, key, out pin, out offset);
+			if (!found)
+			{
+				return false;
+			}
 
-        private bool TryGetEdge(NodePin thisLock, bool first, out KeyValuePair<TKey, TValue> item)
-        {
-            NodePin pin;
-            int offset;
-            if (SeekToEdge(thisLock, first, out pin, out offset))
-            {
-                using (pin)
-                {
-                    item = new KeyValuePair<TKey, TValue>(
-                        pin.Ptr[offset].Key,
-                        pin.Ptr[offset].Payload);
-                    return true;
-                }
-            }
-            item = default(KeyValuePair<TKey, TValue>);
-            return false;
-        }
+			using (pin)
+			{
+				var newValue = pin.Ptr[offset].Payload;
+				var updated = value.UpdateValue(key, ref newValue);
+				if (!updated)
+				{
+					return false;
+				}
 
-        private bool Update<T>(NodePin thisLock, TKey key, ref T value) where T : IUpdateValue<TKey, TValue>
-        {
-            NodePin pin;
-            int offset;
-            if (Seek(thisLock, key, out pin, out offset))
-                using (pin)
-                {
-                    TValue newValue = pin.Ptr[offset].Payload;
-                    if (value.UpdateValue(key, ref newValue))
-                    {
-                        using (NodeTransaction trans = _storage.BeginTransaction())
-                        {
-                            trans.BeginUpdate(pin);
-                            pin.Ptr.SetValue(offset, key, newValue, _keyComparer);
-                            trans.UpdateValue(key, newValue);
-                            trans.Commit();
-                            return true;
-                        }
-                    }
-                }
-            return false;
-        }
+				using (var trans = _storage.BeginTransaction())
+				{
+					trans.BeginUpdate(pin);
+					pin.Ptr.SetValue(offset, key, newValue, _keyComparer);
+					trans.UpdateValue(key, newValue);
+					trans.Commit();
+					return true;
+				}
+			}
+		}
 
-        private int CountValues(NodePin thisLock)
-        {
-            if (thisLock.Ptr.IsLeaf)
-                return thisLock.Ptr.Count;
+		private int CountValues(NodePin thisLock)
+		{
+			if (thisLock.Ptr.IsLeaf)
+			{
+				return thisLock.Ptr.Count;
+			}
 
-            int count = 0;
-            for (int i = 0; i < thisLock.Ptr.Count; i++)
-            {
-                using (NodePin child = _storage.Lock(thisLock, thisLock.Ptr[i].ChildNode))
-                    count += CountValues(child);
-            }
-            return count;
-        }
-    }
+			var count = 0;
+			for (var i = 0; i < thisLock.Ptr.Count; i++)
+			{
+				using (var child = _storage.Lock(thisLock, thisLock.Ptr[i].ChildNode))
+				{
+					count += CountValues(child);
+				}
+			}
+
+			return count;
+		}
+	}
 }

@@ -97,7 +97,7 @@ namespace CSharpTest.Net.Collections
                 _cache.Clear();
 
                 bool isNew;
-                NodeHandle rootHandle = new NodeHandle(Storage.OpenRoot(out isNew));
+                var rootHandle = new NodeHandle(Storage.OpenRoot(out isNew));
                 _root = GetCache(rootHandle, true);
                 if (isNew)
                     _root.Node = CreateRoot(_root.Handle);
@@ -171,8 +171,8 @@ namespace CSharpTest.Net.Collections
 
             public override ILockStrategy CreateLock(NodeHandle handle, out object refobj)
             {
-                CacheEntry entry = GetCache(handle, true);
-                bool locked = entry.Lock.TryWrite(base.Options.LockTimeout);
+                var entry = GetCache(handle, true);
+                var locked = entry.Lock.TryWrite(base.Options.LockTimeout);
                 Assert(locked);
                 refobj = entry;
                 return entry.Lock;
@@ -180,9 +180,9 @@ namespace CSharpTest.Net.Collections
 
             protected override NodePin Lock(NodePin parent, LockType ltype, NodeHandle child)
             {
-                CacheEntry entry = GetCache(child, false);
+                var entry = GetCache(child, false);
 
-                LockType locked = NoLock;
+                var locked = NoLock;
                 if (ltype == LockType.Read && entry.Lock.TryRead(base.Options.LockTimeout))
                     locked = LockType.Read;
                 if (ltype != LockType.Read && entry.Lock.TryWrite(base.Options.LockTimeout))
@@ -191,7 +191,7 @@ namespace CSharpTest.Net.Collections
                 DeadlockException.Assert(locked != NoLock);
                 try
                 {
-                    Node node = entry.Node;
+                    var node = entry.Node;
                     if (node == null)
                     {
                         using (new SafeLock<DeadlockException>(entry))
@@ -204,7 +204,7 @@ namespace CSharpTest.Net.Collections
                                     && node != null
                                     && node.StorageHandle.Equals(entry.Handle.StoreHandle)
                                     );
-                                Node old = Interlocked.CompareExchange(ref entry.Node, node, null);
+                                var old = Interlocked.CompareExchange(ref entry.Node, node, null);
                                 Assert(null == old, "Collision on cache load.");
                             }
                         }
@@ -226,7 +226,7 @@ namespace CSharpTest.Net.Collections
                 if (ReferenceEquals(node.Original, node.Ptr))
                     return;
 
-                CacheEntry entry = node.Reference as CacheEntry;
+                var entry = node.Reference as CacheEntry;
                 if (entry == null)
                     throw new AssertionFailedException("Invalid node pin in update.");
 
@@ -242,7 +242,7 @@ namespace CSharpTest.Net.Collections
                     _root.Node = node.Ptr;
                 else
                 {
-                    Node old = Interlocked.CompareExchange(ref entry.Node, node.Ptr, node.Original);
+                    var old = Interlocked.CompareExchange(ref entry.Node, node.Ptr, node.Original);
                     Assert(ReferenceEquals(old, node.Original), "Node was modified without lock");
                 }
             }

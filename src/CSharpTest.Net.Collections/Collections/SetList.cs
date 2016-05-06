@@ -82,14 +82,14 @@ namespace CSharpTest.Net.Collections
 		/// <summary> Returns the zero-based index of the item or -1 </summary>
 		public int IndexOf(T item)
 		{
-			int pos = _list.BinarySearch(item, _comparer);
+			var pos = _list.BinarySearch(item, _comparer);
 			return pos >= 0 ? pos : -1;
 		}
 
 		/// <summary> Returns true if the item is already in the collection </summary>
 		public bool Contains(T item)
 		{
-			int pos = _list.BinarySearch(item, _comparer);
+			var pos = _list.BinarySearch(item, _comparer);
 			return pos >= 0;
 		}
 
@@ -122,7 +122,7 @@ namespace CSharpTest.Net.Collections
         /// <summary> Returns a new collection adding the item provided </summary>
         public void Add(T item, out int index)
         {
-            int pos = _list.BinarySearch(item, _comparer);
+            var pos = _list.BinarySearch(item, _comparer);
             if (pos < 0)
             {
                 _list.Insert(~pos, item);
@@ -136,7 +136,7 @@ namespace CSharpTest.Net.Collections
         public void AddRange(IEnumerable<T> other)
         {
             int pos;
-            foreach (T item in other)
+            foreach (var item in other)
             {
                 pos = _list.BinarySearch(item, _comparer);
                 if (pos < 0)
@@ -147,7 +147,7 @@ namespace CSharpTest.Net.Collections
 		/// <summary> Adds or replaces an item in the collection, returns true if an entry was replaced </summary>
 		public bool Replace(T item)
 		{
-			int pos = _list.BinarySearch(item, _comparer);
+			var pos = _list.BinarySearch(item, _comparer);
 			if (pos < 0)
 				_list.Insert(~pos, item);
 			else
@@ -159,10 +159,10 @@ namespace CSharpTest.Net.Collections
 		/// <summary> Adds or replaces an item in the collection, returns true if any item was replaced </summary>
 		public bool ReplaceAll(IEnumerable<T> items)
 		{
-			bool exists = false;
-			foreach (T item in items)
+			var exists = false;
+			foreach (var item in items)
 			{
-				int pos = _list.BinarySearch(item, _comparer);
+				var pos = _list.BinarySearch(item, _comparer);
 				exists |= pos >= 0;
 				if (pos < 0)
 					_list.Insert(~pos, item);
@@ -179,7 +179,7 @@ namespace CSharpTest.Net.Collections
 		/// <summary> Returns a new collection with the item provided removed </summary>
 		public bool Remove(T item)
 		{
-			int pos = _list.BinarySearch(item, _comparer);
+			var pos = _list.BinarySearch(item, _comparer);
             if (pos >= 0)
             {
                 RemoveAt(pos);
@@ -199,7 +199,7 @@ namespace CSharpTest.Net.Collections
         public void RemoveAll(IEnumerable<T> other)
         {
             int pos;
-            foreach (T item in other)
+            foreach (var item in other)
             {
                 pos = _list.BinarySearch(item, _comparer);
                 if (pos >= 0)
@@ -211,9 +211,9 @@ namespace CSharpTest.Net.Collections
 		/// <example>{ 1, 2, 3 }.IntersectWith({ 2, 3, 4 }) == { 2, 3 }</example>
 		public SetList<T> IntersectWith(SetList<T> other)
 		{
-			List<T> result = new List<T>(Math.Max(0, _list.Count - other._list.Count));
+			var result = new List<T>(Math.Max(0, _list.Count - other._list.Count));
 			int pos;
-			foreach (T item in other._list)
+			foreach (var item in other._list)
 			{
 				pos = _list.BinarySearch(item, _comparer);
 				if (pos >= 0)
@@ -226,7 +226,7 @@ namespace CSharpTest.Net.Collections
 		/// <example>{ 1, 2, 3 }.UnionWith({ 2, 3, 4 }) == { 1, 2, 3, 4 }</example>
 		public SetList<T> UnionWith(SetList<T> other)
         {
-            SetList<T> copy = this.Clone();
+            var copy = this.Clone();
             copy.AddRange(other._list);
             return copy;
 		}
@@ -235,9 +235,9 @@ namespace CSharpTest.Net.Collections
 		/// <example>{ 1, 2, 3 }.ComplementOf({ 2, 3, 4 }) == { 4 }</example>
 		public SetList<T> ComplementOf(SetList<T> other)
 		{
-			List<T> result = new List<T>(other._list.Count);
+			var result = new List<T>(other._list.Count);
 			int pos;
-			foreach (T item in other._list)
+			foreach (var item in other._list)
 			{
 				pos = _list.BinarySearch(item, _comparer);
 				if (pos < 0)
@@ -250,9 +250,9 @@ namespace CSharpTest.Net.Collections
 		/// <example>{ 1, 2, 3 }.RemoveAll({ 2, 3, 4 }) == { 1 }</example>
 		public SetList<T> SubtractSet(SetList<T> other)
 		{
-			List<T> result = new List<T>(_list.Count);
+			var result = new List<T>(_list.Count);
 			int pos;
-			foreach (T item in _list)
+			foreach (var item in _list)
 			{
 				pos = other._list.BinarySearch(item, _comparer);
 				if (pos < 0)
@@ -265,15 +265,15 @@ namespace CSharpTest.Net.Collections
 		/// <example>{ 1, 2, 3 }.ExclusiveOrWith({ 2, 3, 4 }) == { 1, 4 }</example>
 		public SetList<T> ExclusiveOrWith(SetList<T> other)
 		{
-			List<T> result = new List<T>(other._list.Count);
+			var result = new List<T>(other._list.Count);
 			int pos;
-			foreach (T item in other._list)
+			foreach (var item in other._list)
 			{
 				pos = _list.BinarySearch(item, _comparer);
 				if (pos < 0)
 					result.Add(item);
 			}
-			foreach (T item in _list)
+			foreach (var item in _list)
 			{
 				pos = other._list.BinarySearch(item, _comparer);
 				if (pos < 0)
@@ -296,7 +296,7 @@ namespace CSharpTest.Net.Collections
 			if (_list.Count != other._list.Count)
 				return false;
 
-			for (int i = 0; i < _list.Count; i++)
+			for (var i = 0; i < _list.Count; i++)
 			{
 				if (_comparer.Compare(_list[i], other._list[i]) != 0)
 					return false;
@@ -309,7 +309,7 @@ namespace CSharpTest.Net.Collections
 		public bool IsSubsetOf(SetList<T> other)
 		{
 			int pos;
-			foreach (T item in _list)
+			foreach (var item in _list)
 			{
 				pos = other._list.BinarySearch(item, _comparer);
 				if (pos < 0)
@@ -323,7 +323,7 @@ namespace CSharpTest.Net.Collections
 		public bool IsSupersetOf(SetList<T> other)
 		{
 			int pos;
-			foreach (T item in other._list)
+			foreach (var item in other._list)
 			{
 				pos = _list.BinarySearch(item, _comparer);
 				if (pos < 0)

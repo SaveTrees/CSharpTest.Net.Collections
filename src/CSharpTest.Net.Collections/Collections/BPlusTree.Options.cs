@@ -160,8 +160,8 @@ namespace CSharpTest.Net.Collections
                 avgKeySizeBytes = Math.Max(0, Math.Min(ushort.MaxValue, avgKeySizeBytes));
                 avgValueSizeBytes = Math.Max(0, Math.Min(ushort.MaxValue, avgValueSizeBytes));
 
-                int maxChildNodes = Math.Min(256, Math.Max(4, FileBlockSize / (avgKeySizeBytes + childLinkSize)));
-                int maxValueNodes = Math.Min(256, Math.Max(4, FileBlockSize / Math.Max(1, (avgValueSizeBytes + avgKeySizeBytes))));
+                var maxChildNodes = Math.Min(256, Math.Max(4, FileBlockSize / (avgKeySizeBytes + childLinkSize)));
+                var maxValueNodes = Math.Min(256, Math.Max(4, FileBlockSize / Math.Max(1, avgValueSizeBytes + avgKeySizeBytes)));
                 MaximumChildNodes = maxChildNodes;
                 MinimumChildNodes = Math.Max(2, maxChildNodes / 3);
                 MaximumValueNodes = maxValueNodes;
@@ -175,19 +175,19 @@ namespace CSharpTest.Net.Collections
                 if (StorageType == StorageType.Memory) return new BTreeMemoryStore();
 
                 InvalidConfigurationValueException.Assert(StorageType == StorageType.Disk, "StorageType", "Unknown value defined.");
-                bool exists = File.Exists(FileName);
+                var exists = File.Exists(FileName);
                 if (exists && new FileInfo(FileName).Length == 0)
                 {
                     exists = false;
                     File.Delete(FileName);
                 }
-                bool createNew = CreateFile == CreatePolicy.Always ||
+                var createNew = CreateFile == CreatePolicy.Always ||
                                  (exists == false && CreateFile == CreatePolicy.IfNeeded);
 
                 if (!exists && !createNew)
                     throw new InvalidConfigurationValueException("CreateFile", "The file does not exist and CreateFile is Never");
 
-                TransactedCompoundFile.Options foptions =
+                var foptions =
                     new TransactedCompoundFile.Options(FileName)
                     {
                         BlockSize = FileBlockSize,
@@ -336,8 +336,8 @@ namespace CSharpTest.Net.Collections
                 avgKeySizeBytes = Math.Max(0, Math.Min(ushort.MaxValue, avgKeySizeBytes));
                 avgValueSizeBytes = Math.Max(0, Math.Min(ushort.MaxValue, avgValueSizeBytes));
 
-                int maxChildNodes = Math.Min(256, Math.Max(4, (FileBlockSize - storeageOverhead) / (avgKeySizeBytes + childLinkSize)));
-                int maxValueNodes = Math.Min(256, Math.Max(4, (FileBlockSize - storeageOverhead) / Math.Max(1, (avgValueSizeBytes + avgKeySizeBytes))));
+                var maxChildNodes = Math.Min(256, Math.Max(4, (FileBlockSize - storeageOverhead) / (avgKeySizeBytes + childLinkSize)));
+                var maxValueNodes = Math.Min(256, Math.Max(4, (FileBlockSize - storeageOverhead) / Math.Max(1, avgValueSizeBytes + avgKeySizeBytes)));
                 MaximumChildNodes = maxChildNodes;
                 MinimumChildNodes = Math.Max(2, maxChildNodes / 3);
                 MaximumValueNodes = maxValueNodes;
@@ -349,7 +349,7 @@ namespace CSharpTest.Net.Collections
                 if (StorageType == StorageType.Custom) return Check.NotNull(StorageSystem);
                 if (StorageType == StorageType.Memory) return new BTreeMemoryStore();
 
-                bool exists = File.Exists(FileName);
+                var exists = File.Exists(FileName);
                 if (CreateFile == CreatePolicy.Always || (!exists && CreateFile == CreatePolicy.IfNeeded))
                     return BTreeFileStore.CreateNew(FileName, FileBlockSize, FileGrowthRate, ConcurrentWriters, FileOpenOptions);
 

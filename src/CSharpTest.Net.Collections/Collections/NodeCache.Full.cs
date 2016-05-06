@@ -66,10 +66,10 @@ namespace CSharpTest.Net.Collections
 
             public override ILockStrategy CreateLock(NodeHandle handle, out object refobj)
             {
-                NodeWithLock nlck = new NodeWithLock(null, LockFactory.Create());
+                var nlck = new NodeWithLock(null, LockFactory.Create());
                 handle.SetCacheEntry(nlck);
                 refobj = nlck;
-                bool acquired = nlck.Lock.TryWrite(base.Options.LockTimeout);
+                var acquired = nlck.Lock.TryWrite(base.Options.LockTimeout);
                 DeadlockException.Assert(acquired);
                 return nlck.Lock;
             }

@@ -76,13 +76,13 @@ namespace CSharpTest.Net.Collections
             {
                 if(isRoot)
                 {
-                    RootNode root = new RootNode(handle);
+                    var root = new RootNode(handle);
                     Assert(items.Length == 1);
                     root._list[0] = items[0];
                     return root;
                 }
 
-                Node node = new Node(handle, nodeSize);
+                var node = new Node(handle, nodeSize);
                 Array.Copy(items, 0, node._list, 0, items.Length);
                 node._count = items.Length;
                 node._ltype = LockType.Read;
@@ -130,7 +130,7 @@ namespace CSharpTest.Net.Collections
 
             public virtual bool ExistsUsingBinarySearch(IComparer<Element> comparer, Element find, out int ordinal)
             {
-                int start = _count == 0 || _list[0].IsValue ? 0 : 1;
+                var start = _count == 0 || _list[0].IsValue ? 0 : 1;
                 ordinal = Array.BinarySearch(_list, start, _count - start, find, comparer);
                 if (ordinal < 0)
                 {
@@ -161,7 +161,7 @@ namespace CSharpTest.Net.Collections
             {
                 Assert(_ltype != LockType.Read, "Node is currently read-only");
                 Assert(ordinal >= 0 && ordinal < _count, "Index out of range.");
-                Element replacing = _list[ordinal];
+                var replacing = _list[ordinal];
                 Assert(
                     (original == null && replacing.ChildNode == null) ||
                     (original != null && original.Equals(replacing.ChildNode))

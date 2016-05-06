@@ -114,7 +114,7 @@ namespace CSharpTest.Net.Collections
 
             allocSize = (int)Math.Min((long)allocSize + OverAlloc, 0x3fffffff);
             //last power of 2 that is less than allocSize
-            for (_shift = 7; _shift < 24 && (1 << (_shift + 1)) < allocSize; _shift++) { }
+            for (_shift = 7; _shift < 24 && 1 << (_shift + 1) < allocSize; _shift++) { }
             _allocSize = 1 << _shift;
             _shiftMask = _allocSize - 1;
 
@@ -123,7 +123,7 @@ namespace CSharpTest.Net.Collections
 
             _lsize = HashUtilities.SelectPrimeNumber(lockSize);
             _locks = new object[_lsize];
-            for (int i = 0; i < _lsize; i++)
+            for (var i = 0; i < _lsize; i++)
                 _locks[i] = new object();
 
             _free = new FreeList[FreeSlots];
@@ -175,7 +175,7 @@ namespace CSharpTest.Net.Collections
 
                 Array.Clear(_buckets, 0, _hsize);
                 _entries = new[] { new Entry[_allocSize] };
-                for (int slot = 0; slot < FreeSlots; slot++)
+                for (var slot = 0; slot < FreeSlots; slot++)
                 {
                     var index = Interlocked.CompareExchange(ref _used, _used + 1, _used);
                     if (index != slot + 1)
@@ -239,7 +239,7 @@ namespace CSharpTest.Net.Collections
         /// </returns>
         public bool TryGetValue(TKey key, out TValue value)
         {
-            int hash = _comparer.GetHashCode(key) & int.MaxValue;
+            var hash = _comparer.GetHashCode(key) & int.MaxValue;
             return InternalGetValue(hash, key, out value);
         }
 
@@ -536,7 +536,7 @@ namespace CSharpTest.Net.Collections
             {
                 get
                 {
-                    int index = _state.Current;
+                    var index = _state.Current;
                     if (index <= 0)
                         throw new InvalidOperationException();
                     if (_owner._entries == null) 
@@ -658,7 +658,7 @@ namespace CSharpTest.Net.Collections
                 {
                     get
                     {
-                        int index = _state.Current;
+                        var index = _state.Current;
                         if (index <= 0)
                             throw new InvalidOperationException();
                         if (_owner._entries == null)
@@ -812,7 +812,7 @@ namespace CSharpTest.Net.Collections
                 {
                     get
                     {
-                        int index = _state.Current;
+                        var index = _state.Current;
                         if (index <= 0)
                             throw new InvalidOperationException();
                         if (_owner._entries == null)
@@ -897,17 +897,17 @@ namespace CSharpTest.Net.Collections
 
             while (true)
             {
-                int index = Interlocked.CompareExchange(ref _entries[0][0].Prev, 0, 0);
+                var index = Interlocked.CompareExchange(ref _entries[0][0].Prev, 0, 0);
                 if (index == 0)
                 {
                     value = default(KeyValuePair<TKey, TValue>);
                     return false;
                 }
 
-                int hash = _entries[index >> _shift][index & _shiftMask].Hash;
+                var hash = _entries[index >> _shift][index & _shiftMask].Hash;
                 if (hash >= 0)
                 {
-                    int bucket = hash % _hsize;
+                    var bucket = hash % _hsize;
                     lock (_locks[bucket % _lsize])
                     {
                         if (index == _entries[0][0].Prev &&
@@ -970,17 +970,17 @@ namespace CSharpTest.Net.Collections
 
             while (true)
             {
-                int index = Interlocked.CompareExchange(ref _entries[0][0].Prev, 0, 0);
+                var index = Interlocked.CompareExchange(ref _entries[0][0].Prev, 0, 0);
                 if (index == 0)
                 {
                     value = default(KeyValuePair<TKey, TValue>);
                     return false;
                 }
 
-                int hash = _entries[index >> _shift][index & _shiftMask].Hash;
+                var hash = _entries[index >> _shift][index & _shiftMask].Hash;
                 if (hash >= 0)
                 {
-                    int bucket = hash % _hsize;
+                    var bucket = hash % _hsize;
                     lock (_locks[bucket % _lsize])
                     {
                         if (index == _entries[0][0].Prev &&
@@ -999,8 +999,8 @@ namespace CSharpTest.Net.Collections
                                 }
                             }
 
-                            int next = _entries[index >> _shift][index & _shiftMask].Link;
-                            bool removed = false;
+                            var next = _entries[index >> _shift][index & _shiftMask].Link;
+                            var removed = false;
 
                             if (_buckets[bucket] == index)
                             {
@@ -1009,10 +1009,10 @@ namespace CSharpTest.Net.Collections
                             }
                             else
                             {
-                                int test = _buckets[bucket];
+                                var test = _buckets[bucket];
                                 while (test != 0)
                                 {
-                                    int cmp = _entries[test >> _shift][test & _shiftMask].Link;
+                                    var cmp = _entries[test >> _shift][test & _shiftMask].Link;
                                     if (cmp == index)
                                     {
                                         _entries[test >> _shift][test & _shiftMask].Link = next;
@@ -1056,10 +1056,10 @@ namespace CSharpTest.Net.Collections
             if (_entries == null)
                 throw new ObjectDisposedException(GetType().Name);
 
-            int bucket = hash % _hsize;
+            var bucket = hash % _hsize;
             lock (_locks[bucket % _lsize])
             {
-                int index = _buckets[bucket];
+                var index = _buckets[bucket];
                 while (index != 0)
                 {
                     if (hash == _entries[index >> _shift][index & _shiftMask].Hash &&
@@ -1089,10 +1089,10 @@ namespace CSharpTest.Net.Collections
             if (_entries == null)
                 throw new ObjectDisposedException(GetType().Name);
 
-            int hash = _comparer.GetHashCode(key) & int.MaxValue;
+            var hash = _comparer.GetHashCode(key) & int.MaxValue;
             int added;
 
-            InsertResult result = InternalInsert(hash, key, out added, ref value);
+            var result = InternalInsert(hash, key, out added, ref value);
 
             if (added > _limit && _ordering != LurchTableOrder.None)
             {
@@ -1104,11 +1104,11 @@ namespace CSharpTest.Net.Collections
 
         InsertResult InternalInsert<T>(int hash, TKey key, out int added, ref T value) where T : ICreateOrUpdateValue<TKey, TValue>
         {
-            int bucket = hash % _hsize;
+            var bucket = hash % _hsize;
             lock (_locks[bucket % _lsize])
             {
                 TValue temp;
-                int index = _buckets[bucket];
+                var index = _buckets[bucket];
                 while (index != 0)
                 {
                     if (hash == _entries[index >> _shift][index & _shiftMask].Hash &&
@@ -1171,22 +1171,22 @@ namespace CSharpTest.Net.Collections
             if (_entries == null)
                 throw new ObjectDisposedException(GetType().Name);
 
-            int hash = _comparer.GetHashCode(key) & int.MaxValue;
-            int bucket = hash % _hsize;
+            var hash = _comparer.GetHashCode(key) & int.MaxValue;
+            var bucket = hash % _hsize;
             lock (_locks[bucket % _lsize])
             {
-                int prev = 0;
-                int index = _buckets[bucket];
+                var prev = 0;
+                var index = _buckets[bucket];
                 while (index != 0)
                 {
                     if (hash == _entries[index >> _shift][index & _shiftMask].Hash &&
                         _comparer.Equals(key, _entries[index >> _shift][index & _shiftMask].Key))
                     {
-                        TValue temp = _entries[index >> _shift][index & _shiftMask].Value;
+                        var temp = _entries[index >> _shift][index & _shiftMask].Value;
 
                         if (value.RemoveValue(key, temp))
                         {
-                            int next = _entries[index >> _shift][index & _shiftMask].Link;
+                            var next = _entries[index >> _shift][index & _shiftMask].Link;
                             if (prev == 0)
                                 _buckets[bucket] = next;
                             else
@@ -1217,7 +1217,7 @@ namespace CSharpTest.Net.Collections
         {
             Interlocked.Exchange(ref _entries[index >> _shift][index & _shiftMask].Prev, 0);
             Interlocked.Exchange(ref _entries[index >> _shift][index & _shiftMask].Next, ~0);
-            int next = Interlocked.Exchange(ref _entries[0][0].Next, index);
+            var next = Interlocked.Exchange(ref _entries[0][0].Next, index);
             if (next < 0)
                 throw new LurchTableCorruptionException();
 
@@ -1232,22 +1232,22 @@ namespace CSharpTest.Net.Collections
             while (true)
             {
                 int cmp;
-                int prev = _entries[index >> _shift][index & _shiftMask].Prev;
+                var prev = _entries[index >> _shift][index & _shiftMask].Prev;
                 while (prev >= 0 && prev != (cmp = Interlocked.CompareExchange(
                             ref _entries[index >> _shift][index & _shiftMask].Prev, ~prev, prev)))
                     prev = cmp;
                 if (prev < 0)
                     throw new LurchTableCorruptionException();
 
-                int next = _entries[index >> _shift][index & _shiftMask].Next;
+                var next = _entries[index >> _shift][index & _shiftMask].Next;
                 while (next >= 0 && next != (cmp = Interlocked.CompareExchange(
                             ref _entries[index >> _shift][index & _shiftMask].Next, ~next, next)))
                     next = cmp;
                 if (next < 0)
                     throw new LurchTableCorruptionException();
 
-                if ((Interlocked.CompareExchange(
-                        ref _entries[prev >> _shift][prev & _shiftMask].Next, next, index) == index))
+                if (Interlocked.CompareExchange(
+	                ref _entries[prev >> _shift][prev & _shiftMask].Next, next, index) == index)
                 {
                     while (Interlocked.CompareExchange(
                                ref _entries[next >> _shift][next & _shiftMask].Prev, prev, index) != index)
@@ -1270,7 +1270,7 @@ namespace CSharpTest.Net.Collections
         {
             while (true)
             {
-                int allocated = _entries.Length * _allocSize;
+                var allocated = _entries.Length * _allocSize;
                 var previous = _entries;
 
                 while (_count + OverAlloc < allocated || _used < allocated)
@@ -1278,12 +1278,12 @@ namespace CSharpTest.Net.Collections
                     int next;
                     if (_count + FreeSlots < _used)
                     {
-                        int freeSlotIndex = Interlocked.Increment(ref _allocNext);
-                        int slot = (freeSlotIndex & int.MaxValue) % FreeSlots;
+                        var freeSlotIndex = Interlocked.Increment(ref _allocNext);
+                        var slot = (freeSlotIndex & int.MaxValue) % FreeSlots;
                         next = Interlocked.Exchange(ref _free[slot].Head, 0);
                         if (next != 0)
                         {
-                            int nextFree = _entries[next >> _shift][next & _shiftMask].Link;
+                            var nextFree = _entries[next >> _shift][next & _shiftMask].Link;
                             if (nextFree == 0)
                             {
                                 Interlocked.Exchange(ref _free[slot].Head, next);
@@ -1299,7 +1299,7 @@ namespace CSharpTest.Net.Collections
                     next = _used;
                     if (next < allocated)
                     {
-                        int alloc = Interlocked.CompareExchange(ref _used, next + 1, next);
+                        var alloc = Interlocked.CompareExchange(ref _used, next + 1, next);
                         if (alloc == next)
                         {
                             return next;
@@ -1312,7 +1312,7 @@ namespace CSharpTest.Net.Collections
                     //time to grow...
                     if (ReferenceEquals(_entries, previous))
                     {
-                        Entry[][] arentries = new Entry[_entries.Length + 1][];
+                        var arentries = new Entry[_entries.Length + 1][];
                         _entries.CopyTo(arentries, 0);
                         arentries[arentries.Length - 1] = new Entry[_allocSize];
 
@@ -1328,8 +1328,8 @@ namespace CSharpTest.Net.Collections
             _entries[index >> _shift][index & _shiftMask].Value = default(TValue);
             Interlocked.Exchange(ref _entries[index >> _shift][index & _shiftMask].Link, 0);
 
-            int slot = (ver & int.MaxValue) % FreeSlots;
-            int prev = Interlocked.Exchange(ref _free[slot].Tail, index);
+            var slot = (ver & int.MaxValue) % FreeSlots;
+            var prev = Interlocked.Exchange(ref _free[slot].Tail, index);
 
             if (prev <= 0 || 0 != Interlocked.CompareExchange(ref _entries[prev >> _shift][prev & _shiftMask].Link, index, 0))
             {

@@ -73,7 +73,7 @@ namespace CSharpTest.Net.Collections
         /// </summary>
         public static IEnumerable<KeyValuePair<TKey, TValue>> Merge(IComparer<TKey> comparer, DuplicateHandling duplicateHandling, params IEnumerable<KeyValuePair<TKey, TValue>>[] enums)
         {
-            KeyValueComparer<TKey, TValue> kvcompare = new KeyValueComparer<TKey, TValue>(comparer);
+            var kvcompare = new KeyValueComparer<TKey, TValue>(comparer);
             return WithDuplicateHandling(Merge(kvcompare, enums), kvcompare, duplicateHandling);
         }
     }

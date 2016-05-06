@@ -68,9 +68,9 @@ namespace CSharpTest.Net.Collections
         /// </summary>
         public void Dispose()
         {
-            for (int i = base.Count - 1; i >= 0; i--)
+            for (var i = base.Count - 1; i >= 0; i--)
             {
-                T item = base[i];
+                var item = base[i];
                 base.RemoveAt(i);
 
                 if (item != null)

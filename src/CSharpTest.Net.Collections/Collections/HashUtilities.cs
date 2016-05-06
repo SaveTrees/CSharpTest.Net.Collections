@@ -30,7 +30,7 @@ namespace CSharpTest.Net.Collections
 
         internal static int SelectPrimeNumber(int hashSize)
         {
-            int offset = Array.BinarySearch(PrimeNumbers, hashSize);
+            var offset = Array.BinarySearch(PrimeNumbers, hashSize);
             if (offset < 0)
                 offset = ~offset;
             return PrimeNumbers[Math.Min(offset, PrimeNumbers.Length - 1)];

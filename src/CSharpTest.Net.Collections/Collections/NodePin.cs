@@ -113,7 +113,7 @@ namespace CSharpTest.Net.Collections
 
             public void ChainTo(ref NodeVersion current)
             {
-                NodeVersion last = this;
+                var last = this;
                 while (last.Next != null)
                     last = last.Next;
                 Interlocked.Exchange(ref current, last).Next = this;

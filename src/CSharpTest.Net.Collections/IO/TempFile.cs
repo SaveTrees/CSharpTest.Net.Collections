@@ -48,12 +48,12 @@ namespace CSharpTest.Net.IO
         [DebuggerNonUserCode]
 		public static string CreateTempPath(string extensionWithDot)
         {
-            int attempt = 0;
+            var attempt = 0;
             while (true)
             {
                 try
                 {
-                    string path = Path.GetTempFileName();
+                    var path = Path.GetTempFileName();
 					if (string.IsNullOrEmpty(extensionWithDot))
 					{
 						if (!File.Exists(path))
@@ -85,7 +85,7 @@ namespace CSharpTest.Net.IO
         /// </summary>
         public static TempFile FromCopy(string srcFileName)
         {
-            TempFile temp = FromExtension(Path.GetExtension(srcFileName));
+            var temp = FromExtension(Path.GetExtension(srcFileName));
             try
             {
                 File.Copy(srcFileName, temp.TempPath, true);
@@ -102,7 +102,7 @@ namespace CSharpTest.Net.IO
         /// </summary>
         public static void Delete(string path)
         {
-            bool exists = false;
+            var exists = false;
             try { exists = !String.IsNullOrEmpty(path) && File.Exists(path); }
             catch (System.IO.IOException) { }
 
@@ -164,7 +164,7 @@ namespace CSharpTest.Net.IO
             }
             catch (System.IO.IOException e)
             {
-                string filename = _filename;
+                var filename = _filename;
 
                 if (!disposing) //wait for next GC's collection
                 {
@@ -182,7 +182,7 @@ namespace CSharpTest.Net.IO
         public string Detatch()
         {
             GC.SuppressFinalize(this);
-            string name = _filename;
+            var name = _filename;
             _filename = null;
             return name;
         }
@@ -201,7 +201,7 @@ namespace CSharpTest.Net.IO
         public long Length
         {
             get { return !Exists ? 0L : Info.Length; }
-            set { using (Stream s = Open()) s.SetLength(value); }
+            set { using (var s = Open()) s.SetLength(value); }
         }
 
         /// <summary>

@@ -96,7 +96,7 @@ namespace CSharpTest.Net.Collections
             {
                 if (index >= 0 && index < _count)
                 {
-                    Node parent = _first;
+                    var parent = _first;
                     while (parent != null)
                     {
                         if (index < parent.Count)
@@ -132,7 +132,7 @@ namespace CSharpTest.Net.Collections
         public void AddRange(IEnumerable<T> items)
         {
             Modify();
-            foreach (T pair in items)
+            foreach (var pair in items)
                 Add(pair);
         }
 
@@ -158,7 +158,7 @@ namespace CSharpTest.Net.Collections
             SeekResult result;
             if(Seek(_root, item, out result))
             {
-                int ordinal = result.ParentIx;
+                var ordinal = result.ParentIx;
                 while((result.Parent = result.Parent.Prev) != null)
                     ordinal += result.Parent.Count;
                 return ordinal;
@@ -200,10 +200,10 @@ namespace CSharpTest.Net.Collections
         {
             if(array == null)
                 throw new ArgumentNullException();
-            if(arrayIndex < 0 || (array.Length - arrayIndex) < _count)
+            if(arrayIndex < 0 || array.Length - arrayIndex < _count)
                 throw new ArgumentOutOfRangeException();
 
-            Node node = _first;
+            var node = _first;
             while(node != null)
             {
                 Array.Copy(node.Values, 0, array, arrayIndex, node.Count);
@@ -237,7 +237,7 @@ namespace CSharpTest.Net.Collections
         /// </summary>
         public T[] ToArray()
         {
-            T[] array = new T[_count];
+            var array = new T[_count];
             CopyTo(array, 0);
             return array;
         }
@@ -259,7 +259,7 @@ namespace CSharpTest.Net.Collections
         {
             SeekResult result;
             Seek(_root, start, out result);
-            return new Enumerator(result.Parent, result.ParentIx, x => (_comparer.Compare(x, end) <= 0));
+            return new Enumerator(result.Parent, result.ParentIx, x => _comparer.Compare(x, end) <= 0);
         }
 
         object ICloneable.Clone() { return Clone(); }
@@ -268,7 +268,7 @@ namespace CSharpTest.Net.Collections
         /// </summary>
         public BTreeList<T> Clone()
         {
-            BTreeList<T> copy = (BTreeList<T>)MemberwiseClone();
+            var copy = (BTreeList<T>)MemberwiseClone();
             copy._first = copy._last = null;
             copy._root = copy._root.Clone(ref copy._first, ref copy._last);
             copy._isReadOnly = false;
@@ -280,7 +280,7 @@ namespace CSharpTest.Net.Collections
         public BTreeList<T> MakeReadOnly()
         {
             if (_isReadOnly) return this;
-            BTreeList<T> copy = Clone();
+            var copy = Clone();
             copy._isReadOnly = true;
             return copy;
         }
@@ -302,10 +302,10 @@ namespace CSharpTest.Net.Collections
             found.Parent = from;
             found.ParentIx = -1;
             
-            KeyValuePair<T, Node> seek = new KeyValuePair<T, Node>(item, null);
+            var seek = new KeyValuePair<T, Node>(item, null);
             while (!found.Parent.IsLeaf)
             {
-                int ix = Array.BinarySearch(found.Parent.Children, 1, found.Parent.Count - 1, seek, _kvcomparer);
+                var ix = Array.BinarySearch(found.Parent.Children, 1, found.Parent.Count - 1, seek, _kvcomparer);
                 if (ix < 0 && (ix = ~ix) > 0)
                     ix--;
                 found.Parent = found.Parent.Children[ix].Value;
@@ -331,7 +331,7 @@ namespace CSharpTest.Net.Collections
                     myIx = 0;
                 }
                 T split;
-                Node next = new Node(_order, me, out split, ref _first, ref _last);
+                var next = new Node(_order, me, out split, ref _first, ref _last);
                 parent.Add(myIx + 1, split, next);
                 if (_comparer.Compare(split, item) <= 0)
                     me = next;
@@ -352,7 +352,7 @@ namespace CSharpTest.Net.Collections
                 return true;
             }
 
-            KeyValuePair<T, Node> seek = new KeyValuePair<T, Node>(item, null);
+            var seek = new KeyValuePair<T, Node>(item, null);
             ix = Array.BinarySearch(me.Children, 1, me.Count - 1, seek, _kvcomparer);
             if (ix < 0 && (ix = ~ix) > 0)
                 ix--;
@@ -363,7 +363,7 @@ namespace CSharpTest.Net.Collections
         {
             if (parent == null && ReferenceEquals(me, _root) && me.Count == 1 && me.IsLeaf == false)
                 _root = me.Children[0].Value;
-            if (parent != null && me.Count <= (_order >> 2))
+            if (parent != null && me.Count <= _order >> 2)
             {
                 if (myIx == 0)
                     parent.Join(myIx, myIx + 1, ref _first, ref _last);
@@ -384,12 +384,12 @@ namespace CSharpTest.Net.Collections
                 return true;
             }
 
-            KeyValuePair<T, Node> seek = new KeyValuePair<T, Node>(item, null);
+            var seek = new KeyValuePair<T, Node>(item, null);
             ix = Array.BinarySearch(me.Children, 1, me.Count - 1, seek, _kvcomparer);
             if (ix < 0 && (ix = ~ix) > 0)
                 ix--;
 
-            Node child = me.Children[ix].Value;
+            var child = me.Children[ix].Value;
             if (!Remove(me, ix, child, item))
                 return false;
 
@@ -500,14 +500,14 @@ namespace CSharpTest.Net.Collections
                 if (split._values != null)
                 {
                     _values = new T[order];
-                    int half = split._count >> 1;
-                    Array.Copy(split._values, half, _values, 0, _count = (split._count - half));
+                    var half = split._count >> 1;
+                    Array.Copy(split._values, half, _values, 0, _count = split._count - half);
                     Array.Clear(split._values, half, _count);
                     split._count = half;
                     splitKey = _values[0];
 
                     Prev = split;
-                    Node oldNext = split.Next;
+                    var oldNext = split.Next;
                     split.Next = this;
                     if ((Next = oldNext) == null)
                         last = split;
@@ -515,8 +515,8 @@ namespace CSharpTest.Net.Collections
                 else //if (split.Children != null)
                 {
                     _children = new KeyValuePair<T, Node>[order];
-                    int half = split._count >> 1;
-                    Array.Copy(split._children, half, _children, 0, _count = (split._count - half));
+                    var half = split._count >> 1;
+                    Array.Copy(split._children, half, _children, 0, _count = split._count - half);
                     Array.Clear(split._children, half, _count);
                     split._count = half;
                     splitKey = _children[0].Key;
@@ -545,7 +545,7 @@ namespace CSharpTest.Net.Collections
             }
             void RemoveChild(int ix, ref Node first, ref Node last)
             {
-                Node child = _children[ix].Value;
+                var child = _children[ix].Value;
                 if(child != null)
                 {
                     if (child.Next != null)
@@ -565,10 +565,10 @@ namespace CSharpTest.Net.Collections
             public void Join(int firstIx, int secondIx, ref Node nodeFirst, ref Node nodeLast)
             {
                 if (IsLeaf || firstIx < 0 || secondIx >= Count) return;
-                Node first = Children[firstIx].Value;
-                Node second = Children[secondIx].Value;
-                int order = first.IsLeaf ? first.Values.Length : first.Children.Length;
-                int total = first.Count + second.Count;
+                var first = Children[firstIx].Value;
+                var second = Children[secondIx].Value;
+                var order = first.IsLeaf ? first.Values.Length : first.Children.Length;
+                var total = first.Count + second.Count;
 
                 if (total < order)
                 {
@@ -581,35 +581,35 @@ namespace CSharpTest.Net.Collections
                 }
                 else if (first.IsLeaf)
                 {
-                    T[] list = new T[total];
+                    var list = new T[total];
                     Array.Copy(first.Values, 0, list, 0, first.Count);
                     Array.Copy(second.Values, 0, list, first.Count, second.Count);
                     Array.Clear(first.Values, 0, first.Count);
                     Array.Clear(second.Values, 0, second.Count);
 
-                    int half = total >> 1;
+                    var half = total >> 1;
                     Array.Copy(list, 0, first.Values, 0, first._count = half);
-                    Array.Copy(list, half, second.Values, 0, second._count = (total - half));
+                    Array.Copy(list, half, second.Values, 0, second._count = total - half);
                     Children[secondIx] = new KeyValuePair<T, Node>(second.Values[0], second);
                 }
                 else //if (first.IsLeaf == false)
                 {
-                    KeyValuePair<T, Node>[] list = new KeyValuePair<T, Node>[total];
+                    var list = new KeyValuePair<T, Node>[total];
                     Array.Copy(first.Children, 0, list, 0, first.Count);
                     Array.Copy(second.Children, 0, list, first.Count, second.Count);
                     Array.Clear(first.Children, 0, first.Count);
                     Array.Clear(second.Children, 0, second.Count);
                     list[first.Count] = new KeyValuePair<T, Node>(Children[secondIx].Key, list[first.Count].Value);
 
-                    int half = total >> 1;
+                    var half = total >> 1;
                     Array.Copy(list, 0, first.Children, 0, first._count = half);
-                    Array.Copy(list, half, second.Children, 0, second._count = (total - half));
+                    Array.Copy(list, half, second.Children, 0, second._count = total - half);
                     Children[secondIx] = new KeyValuePair<T, Node>(second.Children[0].Key, second);
                 }
             }
             public Node Clone(ref Node first, ref Node last)
             {
-                Node copy = (Node)MemberwiseClone();
+                var copy = (Node)MemberwiseClone();
                 if (copy.IsLeaf)
                 {
                     copy._values = (T[])copy._values.Clone();
@@ -625,7 +625,7 @@ namespace CSharpTest.Net.Collections
                 else
                 {
                     copy._children = new KeyValuePair<T, Node>[copy._children.Length];
-                    for( int i=0; i < copy._count; i++)
+                    for( var i=0; i < copy._count; i++)
                         copy._children[i] = new KeyValuePair<T, Node>(
                             _children[i].Key,
                             _children[i].Value.Clone(ref first, ref last)

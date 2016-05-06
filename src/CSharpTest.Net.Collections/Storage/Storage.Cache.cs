@@ -69,12 +69,12 @@ namespace CSharpTest.Net.Collections
             {
                 get
                 {
-                    INodeStoreWithCount tstore = _store as INodeStoreWithCount;
-                    return (tstore != null) ? tstore.Count : -1;
+                    var tstore = _store as INodeStoreWithCount;
+                    return tstore != null ? tstore.Count : -1;
                 }
                 set
                 {
-                    INodeStoreWithCount tstore = _store as INodeStoreWithCount;
+                    var tstore = _store as INodeStoreWithCount;
                     if (tstore != null)
                         tstore.Count = value;
                 }
@@ -88,7 +88,7 @@ namespace CSharpTest.Net.Collections
 
                     Flush();
 
-                    ITransactable tstore = _store as ITransactable;
+                    var tstore = _store as ITransactable;
                     if (tstore != null)
                         tstore.Commit();
                 }
@@ -106,7 +106,7 @@ namespace CSharpTest.Net.Collections
 
             public void Rollback()
             {
-                ITransactable tstore = _store as ITransactable;
+                var tstore = _store as ITransactable;
                 if (tstore != null)
                 {
                     _serializer = null;

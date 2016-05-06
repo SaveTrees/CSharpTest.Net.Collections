@@ -110,7 +110,7 @@ namespace CSharpTest.Net.IO
                 long fallocated;
                 bool canWrite;
 
-                using (Stream s = _streamCache.Open(FileAccess.ReadWrite))
+                using (var s = _streamCache.Open(FileAccess.ReadWrite))
                 {
                     canWrite = s.CanWrite;
                     if (!s.CanRead)
@@ -161,7 +161,7 @@ namespace CSharpTest.Net.IO
                 _disposed = true;
                 try
                 {
-                    using (Stream s = _streamCache.Open(FileAccess.ReadWrite))
+                    using (var s = _streamCache.Open(FileAccess.ReadWrite))
                     {
                         if (s.CanWrite)
                         {
@@ -215,12 +215,12 @@ namespace CSharpTest.Net.IO
         {
             long mask;
             SetBlockSize(blockSize, out blockSize, out mask, out mask);
-            using (FileBlock block = new FileBlock(Check.InRange(blockSize, 512, /*65,536*/0x10000), false))
+            using (var block = new FileBlock(Check.InRange(blockSize, 512, /*65,536*/0x10000), false))
             {
                 block.Length = blockSize;
                 block.Flags = BlockFlags.HeaderFlags;
 
-                using (Stream f = streamFactory.Create())
+                using (var f = streamFactory.Create())
                 {
                     f.Position = 0;
                     block.Write(f, blockSize);
@@ -232,7 +232,7 @@ namespace CSharpTest.Net.IO
         /// <summary> Destroys all contents of the file and resets to an initial state </summary>
         public void Clear()
         {
-            using (Stream f = _streamCache.Open(FileAccess.ReadWrite))
+            using (var f = _streamCache.Open(FileAccess.ReadWrite))
             {
                 f.Position = 0;
                 f.SetLength(0);
@@ -246,9 +246,9 @@ namespace CSharpTest.Net.IO
         /// <returns> A unique integer id for the block to be used with Open/Delete </returns>
         public long Create()
         {
-            using (FileBlock block = new FileBlock(_blockSize, _useAlignedIo))
+            using (var block = new FileBlock(_blockSize, _useAlignedIo))
             {
-                long identity = AllocBlock(block, BlockFlags.ExternalBlock);
+                var identity = AllocBlock(block, BlockFlags.ExternalBlock);
                 return identity;
             }
         }
@@ -258,7 +258,7 @@ namespace CSharpTest.Net.IO
         /// <returns>The stream to write to the newly created block</returns>
         public Stream Create(out long identity)
         {
-            using (FileBlock block = new FileBlock(_blockSize, _useAlignedIo))
+            using (var block = new FileBlock(_blockSize, _useAlignedIo))
             {
                 identity = AllocBlock(block, BlockFlags.ExternalBlock);
                 return new BlockStreamWriter(this, block);
@@ -299,13 +299,13 @@ namespace CSharpTest.Net.IO
 
         private Stream OpenBlock(FileAccess access, long identity)
         {
-            Stream stream = _streamCache.Open(access);
+            var stream = _streamCache.Open(access);
             try
             {
                 if ((identity & _maskOffset) > LastAllocated(stream))
                     throw new ArgumentOutOfRangeException("identity");
 
-                long offset = (identity & _maskOffset);
+                var offset = identity & _maskOffset;
                 stream.Position = offset;
                 Check.IsEqual(offset, stream.Position);
                 return stream;
@@ -320,12 +320,12 @@ namespace CSharpTest.Net.IO
 
         /// <summary> Returns the 'first' block identity that can be allocated </summary>
         public long FirstIdentity { get { return _blockSize | 1; } }
-        private long LastAllocated(Stream s) { return ((s.Length - 1) / _blockSize) * _blockSize; }
+        private long LastAllocated(Stream s) { return (s.Length - 1) / _blockSize * _blockSize; }
 
         private static void SetBlockSize(int value, out int blockSize, out long maskVersion, out long maskOffset)
         {
             maskVersion = 0;
-            int ix = 0;
+            var ix = 0;
             while (true)
             {
                 long bit = 1 << ix;
@@ -344,12 +344,12 @@ namespace CSharpTest.Net.IO
         {
             Trace.TraceWarning("The file store was not closed properly, recovering free blocks.");
 
-            using (Stream s = _streamCache.Open(FileAccess.ReadWrite))
-            using (FileBlock block = new FileBlock(_blockSize, _useAlignedIo))
+            using (var s = _streamCache.Open(FileAccess.ReadWrite))
+            using (var block = new FileBlock(_blockSize, _useAlignedIo))
             {
-                long lastBlock = LastAllocated(s);
+                var lastBlock = LastAllocated(s);
                 long last = 0;
-                for (long blk = lastBlock; blk > 0; blk -= _blockSize)
+                for (var blk = lastBlock; blk > 0; blk -= _blockSize)
                 {
                     s.Position = blk & _maskOffset;
                     block.Read(s, FileBlock.HeaderSize);
@@ -373,11 +373,11 @@ namespace CSharpTest.Net.IO
         /// <returns>Enumeration of the identity and data stream of each block in the file</returns>
         public IEnumerable<KeyValuePair<long, Stream>> ForeachBlock(bool allocatedOnly, bool verifyReads, Converter<Exception, bool> ignoreException)
         {
-            using (Stream s = _streamCache.Open(FileAccess.ReadWrite))
-            using (FileBlock block = new FileBlock(_blockSize, _useAlignedIo))
+            using (var s = _streamCache.Open(FileAccess.ReadWrite))
+            using (var block = new FileBlock(_blockSize, _useAlignedIo))
             {
-                long lastBlock = LastAllocated(s);
-                for (long blk = lastBlock; blk > 0; blk -= _blockSize)
+                var lastBlock = LastAllocated(s);
+                for (var blk = lastBlock; blk > 0; blk -= _blockSize)
                 {
                     s.Position = blk & _maskOffset;
                     block.Read(s, FileBlock.HeaderSize);
@@ -408,14 +408,14 @@ namespace CSharpTest.Net.IO
 
         private bool FreeBlock(long blockId, BlockFlags expected)
         {
-            using (FileBlock first = new FileBlock(_blockSize, _useAlignedIo))
+            using (var first = new FileBlock(_blockSize, _useAlignedIo))
             {
                 ReadBlock(blockId, first, FileBlock.HeaderSize, expected | BlockFlags.BlockDeleted);
 
                 if ((first.Flags & expected) != expected)
                     return false;
 
-                using (FileBlock last = first.Clone())
+                using (var last = first.Clone())
                 {
                     while (last.NextBlockId != 0)
                     {
@@ -442,8 +442,8 @@ namespace CSharpTest.Net.IO
             if ((startBlock & _maskVersion) != 0 || (endBlock & _maskVersion) != 0)
                 throw new InvalidDataException();
 
-            using (FileBlock block = new FileBlock(_blockSize, _useAlignedIo))
-            using (Stream io = _streamCache.Open(FileAccess.Write))
+            using (var block = new FileBlock(_blockSize, _useAlignedIo))
+            using (var io = _streamCache.Open(FileAccess.Write))
             {
                 _header.Flags |= BlockFlags.ResizingFile;
                 _header.NextBlockId = startBlock;
@@ -455,7 +455,7 @@ namespace CSharpTest.Net.IO
                     block.Flags = BlockFlags.BlockDeleted;
                     _nextFree = 0;
 
-                    for (long ix = endBlock; ix >= startBlock; ix -= _blockSize)
+                    for (var ix = endBlock; ix >= startBlock; ix -= _blockSize)
                     {
                         block.BlockId = ix;
                         block.NextBlockId = _nextFree;
@@ -479,11 +479,11 @@ namespace CSharpTest.Net.IO
         {
             using (new SafeLock(_syncFreeBlock))
             {
-                long blockId = _nextFree;
+                var blockId = _nextFree;
                 if (blockId == 0 && _reallocSize > 0)
                 {
                     long fsize;
-                    using (Stream s = _streamCache.Open(FileAccess.Read))
+                    using (var s = _streamCache.Open(FileAccess.Read))
                         fsize = LastAllocated(s);
                     ResizeFile(fsize + _blockSize, fsize + _reallocSize);
                     blockId = _nextFree;
@@ -492,7 +492,7 @@ namespace CSharpTest.Net.IO
                 if (blockId <= 0)
                     throw new IOException();
 
-                using (Stream io = OpenBlock(FileAccess.Read, blockId))
+                using (var io = OpenBlock(FileAccess.Read, blockId))
                     block.Read(io, FileBlock.HeaderSize);
 
                 if ((block.BlockId & _maskOffset) != (blockId & _maskOffset) || (block.Flags & BlockFlags.BlockDeleted) == 0)
@@ -503,7 +503,7 @@ namespace CSharpTest.Net.IO
                 block.BlockId = blockId;
                 block.IncrementId(_maskVersion);
                 block.NextBlockId = 0;
-                block.Flags = type == BlockFlags.ExternalBlock ? (type | BlockFlags.Temporary) : type;
+                block.Flags = type == BlockFlags.ExternalBlock ? type | BlockFlags.Temporary : type;
                 block.Length = 0;
                 WriteBlock(block.BlockId, block, FileBlock.HeaderSize); 
                 return block.BlockId;
@@ -514,7 +514,7 @@ namespace CSharpTest.Net.IO
         { ReadBlock(ordinal, block, length, type, true); }
         private void ReadBlock(long ordinal, FileBlock block, int length, BlockFlags type, bool exactId)
         {
-            using (Stream io = OpenBlock(FileAccess.Read, ordinal))
+            using (var io = OpenBlock(FileAccess.Read, ordinal))
                 block.Read(io, length);
 
             if (exactId && block.BlockId != ordinal)
@@ -523,7 +523,7 @@ namespace CSharpTest.Net.IO
             if ((block.Flags & type) == 0 && type != 0)
                 throw new InvalidDataException();
 
-            if (block.Length < 0 || block.Length > (_blockSize - FileBlock.HeaderSize))
+            if (block.Length < 0 || block.Length > _blockSize - FileBlock.HeaderSize)
                 throw new InvalidDataException();
         }
 
@@ -532,13 +532,13 @@ namespace CSharpTest.Net.IO
             if (block.BlockId != ordinal)
                 throw new InvalidDataException();
 
-            if (block.Length < 0 || block.Length > (_blockSize - FileBlock.HeaderSize))
+            if (block.Length < 0 || block.Length > _blockSize - FileBlock.HeaderSize)
                 throw new InvalidDataException();
 
             try { } 
             finally 
             {
-                using (Stream io = OpenBlock(FileAccess.Write, ordinal))
+                using (var io = OpenBlock(FileAccess.Write, ordinal))
                     block.Write(io, length);
             }
         }
@@ -597,7 +597,7 @@ namespace CSharpTest.Net.IO
 
             private bool PrepareRead()
             {
-                int remains = _block.Length - _blockPos;
+                var remains = _block.Length - _blockPos;
                 if (remains <= 0 && _block.NextBlockId != 0)
                 {
                     _file.ReadBlock(_block.NextBlockId, _block, _file._blockSize, _validated ? BlockFlags.InternalBlock : 0, _validated);
@@ -612,7 +612,7 @@ namespace CSharpTest.Net.IO
                     }
                 }
 
-                return (remains > 0);
+                return remains > 0;
             }
             public override int Read(byte[] buffer, int offset, int count)
             {
@@ -620,8 +620,8 @@ namespace CSharpTest.Net.IO
                 if (!PrepareRead())
                     return 0;
 
-                int remains = _block.Length - _blockPos;
-                int amt = Math.Min(remains, count);
+                var remains = _block.Length - _blockPos;
+                var amt = Math.Min(remains, count);
                 Array.Copy(_block.BlockData, _blockPos + _block.DataOffset, buffer, offset, amt);
                 _blockPos += amt;
                 return amt;
@@ -630,7 +630,7 @@ namespace CSharpTest.Net.IO
             {
                 if (!PrepareRead())
                     return -1;
-                byte response = _block.BlockData[_blockPos + _block.DataOffset];
+                var response = _block.BlockData[_blockPos + _block.DataOffset];
                 _blockPos += 1;
                 return response;
             }
@@ -779,7 +779,7 @@ namespace CSharpTest.Net.IO
                 
                 if (_current.Length == FileBlockDataSize)//full
                 {
-                    FileBlock next = _temp ?? new FileBlock(_file._blockSize, _file._useAlignedIo);
+                    var next = _temp ?? new FileBlock(_file._blockSize, _file._useAlignedIo);
                     _current.NextBlockId = _file.AllocBlock(next, BlockFlags.InternalBlock);
 
                     if (!ReferenceEquals(_current, _first))
@@ -797,7 +797,7 @@ namespace CSharpTest.Net.IO
                 {
                     PrepareWrite();
 
-                    int amt = Math.Min(count, FileBlockDataSize - _current.Length);
+                    var amt = Math.Min(count, FileBlockDataSize - _current.Length);
                     Array.Copy(buffer, offset, _current.BlockData, _current.Length + _current.DataOffset, amt);
                     _current.Length += amt;
                     offset += amt;
@@ -808,7 +808,7 @@ namespace CSharpTest.Net.IO
             {
                 _checksum.Add(value);
                 PrepareWrite();
-                int position = _current.Length + _current.DataOffset;
+                var position = _current.Length + _current.DataOffset;
                 _current.BlockData[position] = value;
                 _current.Length += 1;
             }
@@ -843,7 +843,7 @@ namespace CSharpTest.Net.IO
             }
 
             public int DataOffset { get { return _baseOffset + HeaderSize; } }
-            private int BlockSize { get { return _alignedIo ? (BlockData.Length / 2) : BlockData.Length; } }
+            private int BlockSize { get { return _alignedIo ? BlockData.Length / 2 : BlockData.Length; } }
 
             public void Dispose()
             {
@@ -853,28 +853,26 @@ namespace CSharpTest.Net.IO
 
             public void Clear()
             {
-                long id = BlockId;
+                var id = BlockId;
                 Array.Clear(BlockData, 0, BlockData.Length);
                 BlockId = id;
             }
 
             private long ReadLong(int offset)
             {
-                int start = _baseOffset + offset;
-                return (
-                    ((long)BlockData[start + 0] << 56) |
-                    ((long)BlockData[start + 1] << 48) |
-                    ((long)BlockData[start + 2] << 40) |
-                    ((long)BlockData[start + 3] << 32) |
-                    ((long)BlockData[start + 4] << 24) |
-                    ((long)BlockData[start + 5] << 16) |
-                    ((long)BlockData[start + 6] << 8) |
-                    ((long)BlockData[start + 7] << 0)
-                    );
+                var start = _baseOffset + offset;
+                return ((long)BlockData[start + 0] << 56) |
+					   ((long)BlockData[start + 1] << 48) |
+					   ((long)BlockData[start + 2] << 40) |
+					   ((long)BlockData[start + 3] << 32) |
+					   ((long)BlockData[start + 4] << 24) |
+					   ((long)BlockData[start + 5] << 16) |
+					   ((long)BlockData[start + 6] << 8) |
+					   ((long)BlockData[start + 7] << 0);
             }
             private void WriteLong(int offset, long value)
             {
-                int start = _baseOffset + offset;
+                var start = _baseOffset + offset;
                 BlockData[start + 0] = (byte)(value >> 56);
                 BlockData[start + 1] = (byte)(value >> 48);
                 BlockData[start + 2] = (byte)(value >> 40);
@@ -886,17 +884,15 @@ namespace CSharpTest.Net.IO
             }
             private int ReadInt(int offset)
             {
-                int start = _baseOffset + offset;
-                return (
-                    (BlockData[start + 0] << 24) |
-                    (BlockData[start + 1] << 16) |
-                    (BlockData[start + 2] << 8) |
-                    (BlockData[start + 3] << 0)
-                    );
+                var start = _baseOffset + offset;
+                return (BlockData[start + 0] << 24) |
+					   (BlockData[start + 1] << 16) |
+					   (BlockData[start + 2] << 8) |
+					   (BlockData[start + 3] << 0);
             }
             private void WriteInt(int offset, int value)
             {
-                int start = _baseOffset + offset;
+                var start = _baseOffset + offset;
                 BlockData[start + 0] = (byte)(value >> 24);
                 BlockData[start + 1] = (byte)(value >> 16);
                 BlockData[start + 2] = (byte)(value >> 8);
@@ -917,7 +913,7 @@ namespace CSharpTest.Net.IO
 
             public void Read(Stream stream, int length)
             {
-                int bytesRead = stream.Read(BlockData, _baseOffset, Math.Max(_minimumIo, length));
+                var bytesRead = stream.Read(BlockData, _baseOffset, Math.Max(_minimumIo, length));
                 if (bytesRead < HeaderSize)
                     throw new InvalidDataException();
             }
@@ -930,7 +926,7 @@ namespace CSharpTest.Net.IO
 
             public FileBlock Clone()
             {
-                FileBlock copy = new FileBlock(BlockSize, _alignedIo);
+                var copy = new FileBlock(BlockSize, _alignedIo);
                 Array.Copy(BlockData, _baseOffset, copy.BlockData, copy._baseOffset, BlockSize);
                 return copy;
             }

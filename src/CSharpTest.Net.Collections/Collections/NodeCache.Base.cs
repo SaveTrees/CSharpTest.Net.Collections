@@ -103,9 +103,9 @@ namespace CSharpTest.Net.Collections
             protected Node CreateRoot(NodeHandle rootHandle)
             {
                 NodeHandle hChild;
-                using (NodeTransaction t = BeginTransaction())
+                using (var t = BeginTransaction())
                 {
-                    using (NodePin child = t.Create(LockType.Insert, true))
+                    using (var child = t.Create(LockType.Insert, true))
                     {
                         hChild = child.Handle;
                         t.Commit();
@@ -113,13 +113,13 @@ namespace CSharpTest.Net.Collections
                 }
 
                 object refobj;
-                RootNode rootNode = new RootNode(rootHandle.StoreHandle);
+                var rootNode = new RootNode(rootHandle.StoreHandle);
 
-                ILockStrategy lck = CreateLock(rootHandle, out refobj);
+                var lck = CreateLock(rootHandle, out refobj);
                 using (lck.Write(Options.LockTimeout))
                 {
-                    using (NodePin rootPin = new NodePin(rootHandle, lck, LockType.Insert, LockType.Insert, refobj, rootNode, null))
-                    using (NodeTransaction t = BeginTransaction())
+                    using (var rootPin = new NodePin(rootHandle, lck, LockType.Insert, LockType.Insert, refobj, rootNode, null))
+                    using (var t = BeginTransaction())
                     {
                         rootNode = (RootNode)t.BeginUpdate(rootPin);
                         rootNode.ReplaceChild(0, null, hChild);

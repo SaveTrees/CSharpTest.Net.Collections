@@ -72,14 +72,14 @@ namespace CSharpTest.Net.Bases
             /// <summary> Compares the two objects for non-reference equality </summary>
             public override bool Equals(T x, T y) 
             {
-                if (((object)x) == null) return ((object)y) == null;
-                if (((object)y) == null) return false;
+                if ((object)x == null) return (object)y == null;
+                if ((object)y == null) return false;
                 return x.Equals(y);
             }
             /// <summary> Extracts the correct hash code </summary>
             public override int GetHashCode(T obj) 
             { 
-                return ((object)obj) == null ? 0 : obj.HashCode;
+                return (object)obj == null ? 0 : obj.HashCode;
             }
         }
     }
