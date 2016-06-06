@@ -12,7 +12,6 @@
  * limitations under the License.
  */
 #endregion
-using System;
 using System.Collections.Generic;
 
 namespace CSharpTest.Net.Collections
@@ -22,32 +21,52 @@ namespace CSharpTest.Net.Collections
         private struct UpdateInfo : IUpdateValue<TKey, TValue>
         {
             private bool _updated;
-            private TValue _oldValue, _newValue;
-            private KeyValueUpdate<TKey, TValue> _fnUpdate;
+            private TValue _oldValue;
+            private readonly TValue _newValue;
+            private readonly KeyValueUpdate<TKey, TValue> _fnUpdate;
+            private readonly IEqualityComparer<TValue> _comparer;
+
             public UpdateInfo(KeyValueUpdate<TKey, TValue> fnUpdate) : this()
             {
                 _fnUpdate = fnUpdate;
+                _comparer = EqualityComparer<TValue>.Default;
             }
-            public UpdateInfo(TValue newValue) : this()
+
+            //public UpdateInfo(TValue newValue) : this(newValue, EqualityComparer<TValue>.Default)
+            //{
+            //}
+
+            public UpdateInfo(TValue newValue, IEqualityComparer<TValue> comparer) : this()
             {
                 _newValue = newValue;
+                _comparer = comparer;
             }
+
             public bool UpdateValue(TKey key, ref TValue value)
             {
                 _updated = true;
                 _oldValue = value;
-                if (_fnUpdate != null)
-                    value = _fnUpdate(key, value);
-                else
-                    value = _newValue;
-                return !EqualityComparer<TValue>.Default.Equals(value, _oldValue);
+                value = _fnUpdate == null ? _newValue : _fnUpdate(key, value);
+                //var updateValue = !EqualityComparer<TValue>.Default.Equals(value, _oldValue);
+                if (_comparer == null)
+                {
+                    return true;
+                }
+
+                var updateValue = _comparer.Equals(value, _oldValue);
+
+                return updateValue;
             }
+
             public bool Updated { get { return _updated; } }
         }
+
         private struct UpdateIfValue : IUpdateValue<TKey, TValue>
         {
             private bool _updated;
-            private TValue _comparisonValue, _newValue;
+            private readonly TValue _comparisonValue;
+            private readonly TValue _newValue;
+
             public UpdateIfValue(TValue newValue, TValue comparisonValue)
                 : this()
             {
@@ -57,10 +76,10 @@ namespace CSharpTest.Net.Collections
 
             public bool UpdateValue(TKey key, ref TValue value)
             {
-                if(EqualityComparer<TValue>.Default.Equals(value, _comparisonValue))
+                if (EqualityComparer<TValue>.Default.Equals(value, _comparisonValue))
                 {
                     _updated = true;
-                    if(!EqualityComparer<TValue>.Default.Equals(value, _newValue))
+                    if (!EqualityComparer<TValue>.Default.Equals(value, _newValue))
                     {
                         value = _newValue;
                         return true;
@@ -68,6 +87,7 @@ namespace CSharpTest.Net.Collections
                 }
                 return false;
             }
+
             public bool Updated { get { return _updated; } }
         }
 
@@ -101,7 +121,7 @@ namespace CSharpTest.Net.Collections
             finally
             {
                 if (myPin != null) myPin.Dispose();
-                if (nextPin != null) nextPin.Dispose(); 
+                if (nextPin != null) nextPin.Dispose();
             }
 
             pin = null;

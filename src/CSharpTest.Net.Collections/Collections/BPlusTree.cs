@@ -419,7 +419,20 @@ namespace CSharpTest.Net.Collections
         /// <exception cref="T:System.NotSupportedException">The <see cref="T:System.Collections.Generic.IDictionary`2"/> is read-only.</exception>
         public bool TryUpdate(TKey key, TValue value)
         {
-            UpdateInfo ui = new UpdateInfo(value);
+            return TryUpdate(key, value, EqualityComparer<TValue>.Default);
+        }
+
+        /// <summary>
+        /// Updates an element with the provided key to the value if it exists.
+        /// </summary>
+        /// <returns>Returns true if the key provided was found and updated to the value.</returns>
+        /// <param name="key">The object to use as the key of the element to update.</param>
+        /// <param name="value">The new value for the key if found.</param>
+        /// <param name="comparer"></param>
+        /// <exception cref="T:System.NotSupportedException">The <see cref="T:System.Collections.Generic.IDictionary`2"/> is read-only.</exception>
+        public bool TryUpdate(TKey key, TValue value, IEqualityComparer<TValue> comparer)
+        {
+            UpdateInfo ui = new UpdateInfo(value, comparer);
             bool result;
             using (RootLock root = LockRoot(LockType.Update, "Update"))
                 result = Update(root.Pin, key, ref ui);
