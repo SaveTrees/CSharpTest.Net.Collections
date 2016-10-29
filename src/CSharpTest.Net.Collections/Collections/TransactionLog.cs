@@ -2,9 +2,9 @@
 /* Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -254,8 +254,8 @@ namespace CSharpTest.Net.Collections
                     _logfile = null;
                 }
 
-                if (Size == 0)
-                    File.Delete(_options.FileName);
+//                if (Size == 0)
+//                    File.Delete(_options.FileName);
             }
         }
 
@@ -263,14 +263,14 @@ namespace CSharpTest.Net.Collections
         /// Returns the current size of the log file in bytes
         /// </summary>
         public long Size
-        { 
+        {
             get
             {
                 return _logfile != null ? _fLength
-                    : (File.Exists(_options.FileName) ? new FileInfo(_options.FileName).Length : 0); 
+                    : (File.Exists(_options.FileName) ? new FileInfo(_options.FileName).Length : 0);
             }
         }
-        
+
         /// <summary>
         /// Replay the entire log file to the provided dictionary interface
         /// </summary>
@@ -464,10 +464,18 @@ namespace CSharpTest.Net.Collections
             lock (_logSync)
             {
                 Close();
-                using (Stream io = new FileStream(_options.FileName, FileMode.OpenOrCreate, FileAccess.Write, FileShare.Read))
+                try
                 {
-                    io.SetLength(position);
-                    _fLength = position;
+                    using (Stream io = new FileStream(_options.FileName, FileMode.OpenOrCreate, FileAccess.Write, FileShare.Read))
+                    {
+                        io.SetLength(position);
+                        _fLength = position;
+                    }
+                }
+                catch (Exception e)
+                {
+                    //Log.CurrentLogger.ErrorWithException()(e, "Attempted to commit to store with id '{id}'", _id);
+                    throw;
                 }
             }
         }
@@ -525,10 +533,10 @@ namespace CSharpTest.Net.Collections
 
             buffer.Position = 8;
             short count = PrimitiveSerializer.Int16.ReadFrom(buffer);
-            
+
             buffer.Position = 8;
             PrimitiveSerializer.Int16.WriteTo(++count, buffer);
-            
+
             buffer.Position = pos;
         }
 
