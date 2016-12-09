@@ -2,9 +2,9 @@
 /* Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -171,14 +171,14 @@ namespace CSharpTest.Net.IO
             Default,
             /// <summary>
             /// If you previously called Commit(Action,T) on a prior instance and the Action
-            /// delegate *was* called, then setting this value will ensure that only the 
+            /// delegate *was* called, then setting this value will ensure that only the
             /// primary state storage is loaded, thereby ensuring you load the 'previous'
             /// state.
             /// </summary>
             Primary,
             /// <summary>
             /// If you previously called Commit(Action,T) on a prior instance and the Action
-            /// delegate was *not* called, then setting this value will ensure that only the 
+            /// delegate was *not* called, then setting this value will ensure that only the
             /// secondary state storage is loaded, thereby ensuring you load the 'previous'
             /// state.
             /// </summary>
@@ -269,7 +269,7 @@ namespace CSharpTest.Net.IO
             }
 
             _readers = new StreamCache(
-                new FileStreamFactory(_options.FilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, 8, FileOptions.None), 
+                new FileStreamFactory(_options.FilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, 8, FileOptions.None),
                 4);
         }
 
@@ -310,22 +310,7 @@ namespace CSharpTest.Net.IO
         }
 
         #region void FlushStream(Stream stream)
-#if !NET40
-        [System.Runtime.InteropServices.DllImport("kernel32.dll", ExactSpelling = true, SetLastError = true)]
-        private static extern bool FlushFileBuffers(IntPtr hFile);
-        void FlushStream(Stream stream)
-        {
-            FileStream fs = stream as FileStream;
-            if(fs == null || (_options.FileOptions & FileOptions.WriteThrough) != 0)
-                stream.Flush();
-            else
-            {
-                SafeFileHandle handle = (SafeFileHandle)fs.GetType().GetField("_handle", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(fs);
-                if (!FlushFileBuffers(handle.DangerousGetHandle()))
-                    throw new System.ComponentModel.Win32Exception();
-            }
-        }
-#else
+#if NET40
         void FlushStream(Stream stream)
         {
             FileStream fs = stream as FileStream;
@@ -333,6 +318,30 @@ namespace CSharpTest.Net.IO
                 stream.Flush();
             else
                 fs.Flush(true);
+        }
+#else
+        [System.Runtime.InteropServices.DllImport("kernel32.dll", ExactSpelling = true, SetLastError = true)]
+        private static extern bool FlushFileBuffers(IntPtr hFile);
+
+        private void FlushStream(Stream stream)
+        {
+            var fs = stream as FileStream;
+            if (fs == null || (_options.FileOptions & FileOptions.WriteThrough) != 0)
+                stream.Flush();
+            else
+            {
+                var memberInfo = fs.GetType().GetField("_handle", BindingFlags.Instance | BindingFlags.NonPublic);
+                if (memberInfo == null)
+                {
+                    throw new System.ComponentModel.Win32Exception("Couldn't find the _handle");
+                }
+
+                var handle = (SafeFileHandle)memberInfo.GetValue(fs);
+                if (!FlushFileBuffers(handle.DangerousGetHandle()))
+                {
+                    throw new System.ComponentModel.Win32Exception();
+                }
+            }
         }
 #endif
         #endregion
@@ -371,7 +380,7 @@ namespace CSharpTest.Net.IO
         /// After the first stage has completed, the stageCommit() delegate is invoked.
         /// </summary>
         /// <remarks>
-        /// 
+        ///
         /// </remarks>
         public void Commit<T>(Action<T> stageCommit, T value)
         {
@@ -853,7 +862,7 @@ namespace CSharpTest.Net.IO
 
                 if (phase2 && ReadUInt32(0) != CalcCrc32())
                     throw new InvalidDataException();
-                else 
+                else
                     MakeValid();
 
                 long phaseShift = phase2 ? (SectionSize - BlockSize) : 0;
@@ -962,7 +971,7 @@ namespace CSharpTest.Net.IO
 
             public uint this[int index]
             {
-                get 
+                get
                 {
                     if (index < 1 || index >= BlocksPerSection - 1)
                         throw new ArgumentOutOfRangeException();
